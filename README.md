@@ -1,9 +1,9 @@
-## Blender Addon to import Assetto Corsa CSV/AI files
+# Blender Addon to import Assetto Corsa CSV/AI files
 
-# Imports ai-line from "ideal_line/fast_lane/pit_lane.ai"
+## Imports ai-line from "ideal_line/fast_lane/pit_lane.ai"
  - recorded with in-game AI app
 
-# Imports "side_l/r/groove.csv"
+## Imports "side_l/r/groove.csv"
  - can be generated with esotics AI-Line helper https://www.racedepartment.com/downloads/ai-line-helper.16016/
 
 ***How to install***
