@@ -1,6 +1,6 @@
 # Blender Addon to import Assetto Corsa CSV/AI files
 
-###release: https://github.com/leBluem/io_import_accsv/releases
+- download: https://github.com/leBluem/io_import_accsv/releases
 
 ## Imports ai-line from "ideal_line/fast_lane/pit_lane.ai"
  - recorded with in-game AI app
