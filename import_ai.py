@@ -20,20 +20,21 @@
 
 
 """
-This script imports a fast_lane.ai/ideal_line.ai into Blender.
+This script imports AssettoCorsa fast_lane.ai/ideal_line.ai into Blender.
 
 Usage:
 Run this script from "File->Import" menu and then load the desired *.ai file.
 """
 
-import bpy, bmesh, os, struct
+import bpy, bmesh, os, struct, math
 from mathutils import Vector
 from bpy_extras.object_utils import object_data_add
 
 def load(context, filepath):
     with open(filepath, "rb") as buffer:
         meshname = os.path.basename(filepath)
-
+        meshwallL = meshname + '_wall_left'
+        meshwallR = meshname + '_wall_right'
         # temporary arrays
         data_ideal = []
         data_detail = []
@@ -52,22 +53,17 @@ def load(context, filepath):
 
         # now comes more data, no info available for that
 
-        # now dissect data from temporary arrays
+        # create vertices from ai line data
+        mesh = 0
         for i in range(detailCount):
-            x, y, z, dist, id = data_ideal[i]
-            coords = ( float(x), -1.0 * float(z), float(y) )
+            x, z, y, dist, id = data_ideal[i]
+            coords = ( float(x), -float(y), float(z) )
             # coords = ( float(x)/100.0, -1.0 * float(z)/100.0, float(y)/100.0 )
             if mesh==0:
                 mesh = bpy.data.meshes.new( name=meshname )
                 mesh.from_pydata( [Vector(coords)] , [], [] )
                 mesh = object_data_add(bpy.context, mesh)
-
-                # Blender<2.8
-                # bpy.context.scene.objects.active = bpy.data.objects[meshname]
-
-                # Blender>=2.8
                 bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
-
                 bpy.ops.object.mode_set(mode='EDIT')
             else:
                 mesh = bmesh.from_edit_mesh(bpy.data.objects[meshname].data)
@@ -75,7 +71,66 @@ def load(context, filepath):
                 mesh.verts.ensure_lookup_table()
                 mesh.edges.new([mesh.verts[len(mesh.verts)-2],mesh.verts[len(mesh.verts)-1]])
                 bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
-    bpy.ops.object.mode_set(mode='OBJECT')
-    # bpy.ops.transform.resize(value=(0.01, 0.01, 0.01), orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(True, True, True), mirror=True, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1, use_proportional_connected=False, use_proportional_projected=False)
+        if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
+            mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        # create vertices from wallRight
+        meshname = meshwallR
+        mesh=0
+        xl, z, yl, dist, id = data_ideal[detailCount-1]
+        for i in range(detailCount):
+            x, z, y, dist, id = data_ideal[i]
+            direction = -math.degrees( math.atan2(yl - y, x - xl))
+            _wallRight = data_detail[i][6]
+            rx = x + math.cos((-direction + 90) * math.pi / 180) * _wallRight
+            ry = y - math.sin((-direction + 90) * math.pi / 180) * _wallRight
+            yl = y
+            xl = x
+            coords = ( float(rx), -float(ry), float(z)  )
+            if mesh==0:
+                mesh = bpy.data.meshes.new( name=meshname )
+                mesh.from_pydata( [Vector(coords)] , [], [] )
+                mesh = object_data_add(bpy.context, mesh)
+                bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
+                bpy.ops.object.mode_set(mode='EDIT')
+            else:
+                mesh = bmesh.from_edit_mesh(bpy.data.objects[meshname].data)
+                mesh.verts.new(coords)
+                mesh.verts.ensure_lookup_table()
+                mesh.edges.new([mesh.verts[len(mesh.verts)-2],mesh.verts[len(mesh.verts)-1]])
+                bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
+        if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
+            mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        # create vertices from wallLeft
+        meshname = meshwallL
+        mesh=0
+        xl, z, yl, dist, id = data_ideal[detailCount-1]
+        for i in range(detailCount):
+            x, z, y, dist, id = data_ideal[i]
+            _wallLeft         = data_detail[i][7]
+            direction = -math.degrees( math.atan2(yl - y, x - xl))
+            lx = x + math.cos((-direction - 90) * math.pi / 180) * _wallLeft
+            ly = y - math.sin((-direction - 90) * math.pi / 180) * _wallLeft
+            yl = y
+            xl = x
+            coords = ( float(lx), -float(ly), float(z)  )
+            if mesh==0:
+                mesh = bpy.data.meshes.new( name=meshname )
+                mesh.from_pydata( [Vector(coords)] , [], [] )
+                mesh = object_data_add(bpy.context, mesh)
+                bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
+                bpy.ops.object.mode_set(mode='EDIT')
+            else:
+                mesh = bmesh.from_edit_mesh(bpy.data.objects[meshname].data)
+                mesh.verts.new(coords)
+                mesh.verts.ensure_lookup_table()
+                mesh.edges.new([mesh.verts[len(mesh.verts)-2],mesh.verts[len(mesh.verts)-1]])
+                bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
+        if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
+            mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
+        bpy.ops.object.mode_set(mode='OBJECT')
 
     return {'FINISHED'}
