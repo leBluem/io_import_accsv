@@ -27,20 +27,39 @@ Run this script from "File->Export" menu and then save the desired CSV file.
 """
 
 import bpy, bmesh, os, struct, csv
-from mathutils import Vector
+import math, mathutils
 from bpy_extras.object_utils import object_data_add
 
 
-def save(context, filepath):
+def distance(point1, point2) -> float:
+    """Calculate distance between two points in 3D."""
+    return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
+
+
+def save(context, filepath, scaling):
     bm = bmesh.new()
     ob = context.active_object
-    if not bpy.context.active_object.mode=='EDIT':
-        bpy.ops.object.mode_set(mode='EDIT')
-    bm = bmesh.from_edit_mesh(ob.data)
-    i=1
+    bm = bpy.context.object.data
     with open(filepath, 'w') as file:
-        for v in bm.verts:
-            file.write("{:.4f},{:.4f},{:.4f},{:.6f}\n".format(round(v.co[0],6), round(v.co[2],6), round(v.co[1],6), round(float(i)/float(len(bm.verts)+1),6) ) )
-            i+=1
+        lastOne = (0.0,0.0,0.0)
+        for v in bm.vertices: # run to get last vert coords
+            lastOne = v.co
+        # we need this to not have 1.0 as pointOfTrack in last CSV line
+        distTotal = distance(bm.vertices[0].co, lastOne)
+        lastv = lastOne
+        for v in bm.vertices:
+            distTotal += distance(v.co, lastv)
+            lastv = v.co
+
+        lastv = lastOne
+        dist = 0.0
+        # print( str(distTotal) + ' - ' + str(len(bm.vertices)) + 'verts\n' )
+        for v in bm.vertices:
+            dist += distance(v.co, lastv)
+            lastv = v.co
+            file.write("{:.4f},{:.4f},{:.4f},{:.6f}\n".format(
+                        v.co[0]*scaling, v.co[2]*scaling, v.co[1]*scaling,
+                        dist/distTotal )
+                )
     bpy.ops.object.mode_set(mode='OBJECT')
     return {'FINISHED'}
