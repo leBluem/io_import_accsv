@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Import-Export AC CSV or AI files",
     "author": "leBluem",
-    "version": (0, 4, 0),
+    "version": (0, 5, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV or AI files",
@@ -62,6 +62,7 @@ else:
 import bpy
 from bpy.props import (
     StringProperty,
+    FloatProperty,
 )
 from bpy_extras.io_utils import (
     ImportHelper,
@@ -82,10 +83,22 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
         default="*.csv;*.ini",
         options={'HIDDEN'},
     )
+    scaling: FloatProperty(
+            name="Scale",
+            min=0.001, max=1000.0,
+            default=1.0,
+            )
     def execute(self, context):
-        return import_csv.load(context, self.properties.filepath)
+        return import_csv.load(context, self.properties.filepath, self.scaling)
     def draw(self, context):
-        pass
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        layout.prop(operator, "scaling")
 
 
 class ImportAI(bpy.types.Operator, ImportHelper):
@@ -98,10 +111,22 @@ class ImportAI(bpy.types.Operator, ImportHelper):
         default="*.ai",
         options={'HIDDEN'},
     )
+    scaling: FloatProperty(
+            name="Scale",
+            min=0.001, max=1000.0,
+            default=1.0,
+            )
     def execute(self, context):
-        return import_ai.load(context, self.properties.filepath)
+        return import_ai.load(context, self.properties.filepath, self.scaling)
     def draw(self, context):
-        pass
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        layout.prop(operator, "scaling")
 
 
 ### export
@@ -116,10 +141,22 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
         default="*.csv;*.ini",
         options={'HIDDEN'},
     )
+    scaling: FloatProperty(
+            name="Scale",
+            min=0.001, max=1000.0,
+            default=1.0,
+            )
     def execute(self, context):
-        return export_csv.save(context, self.properties.filepath)
+        return export_csv.save(context, self.properties.filepath, self.scaling)
     def draw(self, context):
-        pass
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        layout.prop(operator, "scaling")
 
 
 # class ExportAI(bpy.types.Operator, ExportHelper):
@@ -132,6 +169,11 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
 #         default="*.ai",
 #         options={'HIDDEN'},
 #     )
+#     scaling: FloatProperty(
+#             name="Scale",
+#             min=0.001, max=1000.0,
+#             default=1.0,
+#             )
 #     def execute(self, context):
 #         return port_ai.save(context, self.properties.filepath)
 #     def draw(self, context):
