@@ -21,11 +21,11 @@
 bl_info = {
     "name": "Import-Export AC CSV or AI files",
     "author": "leBluem",
-    "version": (0, 5, 0),
+    "version": (0, 6, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV or AI files",
-    "warning": "requires Blender v2.8; no export of AI files yet",
+    "warning": "requires Blender v2.8",
     "doc_url": "https://github.com/leBluem/io_import_accsv",
     "category": "Import-Export",
 }
@@ -52,16 +52,17 @@ if "bpy" in locals():
     imp.reload(import_csv)
     imp.reload(import_ai)
     imp.reload(export_csv)
-    # imp.reload(export_ai)
+    imp.reload(export_ai)
 else:
     import import_csv
     import import_ai
     import export_csv
-    # import export_ai
+    import export_ai
 
 import bpy
 from bpy.props import (
     StringProperty,
+    IntProperty,
     FloatProperty,
 )
 from bpy_extras.io_utils import (
@@ -146,8 +147,13 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
             min=0.001, max=1000.0,
             default=1.0,
             )
+    shiftCount: IntProperty(
+            name="shiftCount",
+            min=-999999, max=999999,
+            default=0,
+            )
     def execute(self, context):
-        return export_csv.save(context, self.properties.filepath, self.scaling)
+        return export_csv.save(context, self.properties.filepath, self.scaling, self.shiftCount)
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -157,27 +163,39 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
         operator = sfile.active_operator
 
         layout.prop(operator, "scaling")
+        # layout.prop(operator, "shiftCount")
 
 
-# class ExportAI(bpy.types.Operator, ExportHelper):
-#     """Save fast_lane.ai"""
-#     bl_idname = "export_ai.read"
-#     bl_label = "Export AC AI line"
-#     bl_options = {'PRESET', 'UNDO'}
-#     filename_ext = ".ai"
-#     filter_glob: StringProperty(
-#         default="*.ai",
-#         options={'HIDDEN'},
-#     )
-#     scaling: FloatProperty(
-#             name="Scale",
-#             min=0.001, max=1000.0,
-#             default=1.0,
-#             )
-#     def execute(self, context):
-#         return port_ai.save(context, self.properties.filepath)
-#     def draw(self, context):
-#         pass
+class ExportAI(bpy.types.Operator, ExportHelper):
+    """Save fast_lane.ai"""
+    bl_idname = "export_ai.write"
+    bl_label = "Export AC AI line"
+    bl_options = {'PRESET', 'UNDO'}
+    filename_ext = ".ai"
+    filter_glob: StringProperty(
+        default="*.ai",
+        options={'HIDDEN'},
+    )
+    scaling: FloatProperty(
+            name="Scale",
+            min=0.001, max=1000.0,
+            default=1.0,
+            )
+    shiftCount: IntProperty(
+            name="shiftCount",
+            min=-999999, max=999999,
+            default=0,
+            )
+    def execute(self, context):
+        return export_ai.save(context, self.properties.filepath, self.shiftCount)
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+        sfile = context.space_data
+        operator = sfile.active_operator
+        layout.prop(operator, "scaling")
+        # layout.prop(operator, "shiftCount")
 
 
 def menu_func_import(self, context):
@@ -186,14 +204,14 @@ def menu_func_import(self, context):
 
 def menu_func_export(self, context):
     self.layout.operator(ExportCSV.bl_idname, text="AC side_x.csv (.csv)")
-    # self.layout.operator(ExportAI.bl_idname, text="AC fast_lane.ai (.ai)")
+    self.layout.operator(ExportAI.bl_idname, text="AC fast_lane.ai (.ai)")
 
 
 classes = (
     ImportCSV,
     ImportAI,
     ExportCSV,
-    # ExportAI,
+    ExportAI,
 )
 
 

@@ -28,7 +28,6 @@ Run this script from "File->Export" menu and then save the desired CSV file.
 
 import bpy, bmesh, os, struct, csv
 import math, mathutils
-from bpy_extras.object_utils import object_data_add
 
 
 def distance(point1, point2) -> float:
@@ -36,16 +35,19 @@ def distance(point1, point2) -> float:
     return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
 
 
-def save(context, filepath, scaling):
+def save(context, filepath, scaling, shiftCount):
     bm = bmesh.new()
     ob = context.active_object
     bm = bpy.context.object.data
     with open(filepath, 'w') as file:
         lastOne = (0.0,0.0,0.0)
-        for v in bm.vertices: # run to get last vert coords
+        # run to get last vert coords
+        for v in bm.vertices:
             lastOne = v.co
         # we need this to not have 1.0 as pointOfTrack in last CSV line
         distTotal = distance(bm.vertices[0].co, lastOne)
+
+        # run to count complete length
         lastv = lastOne
         for v in bm.vertices:
             distTotal += distance(v.co, lastv)

@@ -1,11 +1,9 @@
 # Blender Addon to import Assetto Corsa CSV/AI files
 
- - release: https://github.com/leBluem/io_import_accsv/releases/tag/0.4
-
-## Imports ai-line from "ideal_line/fast_lane/pit_lane.ai"
+## Import/Export ai-line from "ideal_line/fast_lane/pit_lane.ai"
  - recorded with in-game AI app
 
-## Imports "side_l/r/groove.csv"
+## Import/Export "side_l/r/groove.csv"
  - can be generated with esotics AI-Line helper https://www.racedepartment.com/downloads/ai-line-helper.16016/
 
 ***Uses code from***
@@ -26,3 +24,5 @@
  - v0.2 fixed version typo
  - v0.3 fixed rotation of ai-line, widened csv file-filter to include ini files
  - v0.4 fixed first vertex missing in mesh when importing CSV data, added import of walls from AI-line, added export-to CSV
+ - v0.5 fixed CSV export, now pointOfTrack param in csv is calculated from distance between points
+ - v0.6 added export to "fast_lane.ai"; safety check ensures you only overwrite ai line with same number of points; without walls, best to load walls again after this operation, only xyz values for ideal-line will be changed
