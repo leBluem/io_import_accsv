@@ -30,15 +30,27 @@ import bpy, bmesh, os, struct, math
 from mathutils import Vector
 from bpy_extras.object_utils import object_data_add
 
-def load(context, filepath):
+def CenterOrigin(scaling):
+    # taken from
+    # https://blenderartists.org/t/setting-origin-to-world-centre-using-blender-python/1174798
+    bpy.ops.transform.translate(value=(0, 0, 1), orient_type='GLOBAL')
+    #put cursor at origin
+    bpy.context.scene.cursor.location = Vector((0.0, 0.0, 0.0))
+    bpy.context.scene.cursor.rotation_euler = Vector((0.0, 0.0, 0.0))
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.transform.resize(value=(scaling, scaling, scaling))
+
+def load(context, filepath, scaling):
     with open(filepath, "rb") as buffer:
         meshname = os.path.basename(filepath)
         meshwallL = meshname + '_wall_left'
         meshwallR = meshname + '_wall_right'
+
         # temporary arrays
         data_ideal = []
         data_detail = []
         mesh = 0
+        # bpy.ops.view3d.snap_cursor_to_center()
 
         # should be at start, but do it anyway
         buffer.seek(0)
@@ -58,25 +70,26 @@ def load(context, filepath):
         for i in range(detailCount):
             x, z, y, dist, id = data_ideal[i]
             coords = ( float(x), -float(y), float(z) )
-            # coords = ( float(x)/100.0, -1.0 * float(z)/100.0, float(y)/100.0 )
-            if mesh==0:
+            if mesh==0: # create new mesh
                 mesh = bpy.data.meshes.new( name=meshname )
                 mesh.from_pydata( [Vector(coords)] , [], [] )
                 mesh = object_data_add(bpy.context, mesh)
                 bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
                 bpy.ops.object.mode_set(mode='EDIT')
-            else:
+            else: # add to existing mesh
                 mesh = bmesh.from_edit_mesh(bpy.data.objects[meshname].data)
                 mesh.verts.new(coords)
                 mesh.verts.ensure_lookup_table()
                 mesh.edges.new([mesh.verts[len(mesh.verts)-2],mesh.verts[len(mesh.verts)-1]])
                 bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
+        # set last edge
         if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
             mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
         bpy.ops.object.mode_set(mode='OBJECT')
+        CenterOrigin(scaling)
 
-        # create vertices from wallRight
-        meshname = meshwallR
+        # create vertices from wallLeft
+        meshname = meshwallL
         mesh=0
         xl, z, yl, dist, id = data_ideal[detailCount-1]
         for i in range(detailCount):
@@ -88,24 +101,26 @@ def load(context, filepath):
             yl = y
             xl = x
             coords = ( float(rx), -float(ry), float(z)  )
-            if mesh==0:
+            if mesh==0: # create new mesh
                 mesh = bpy.data.meshes.new( name=meshname )
                 mesh.from_pydata( [Vector(coords)] , [], [] )
                 mesh = object_data_add(bpy.context, mesh)
                 bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
                 bpy.ops.object.mode_set(mode='EDIT')
-            else:
+            else: # add to existing mesh
                 mesh = bmesh.from_edit_mesh(bpy.data.objects[meshname].data)
                 mesh.verts.new(coords)
                 mesh.verts.ensure_lookup_table()
                 mesh.edges.new([mesh.verts[len(mesh.verts)-2],mesh.verts[len(mesh.verts)-1]])
                 bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
+        # set last edge
         if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
             mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
         bpy.ops.object.mode_set(mode='OBJECT')
+        CenterOrigin(scaling)
 
-        # create vertices from wallLeft
-        meshname = meshwallL
+        # create vertices from wallRight
+        meshname = meshwallR
         mesh=0
         xl, z, yl, dist, id = data_ideal[detailCount-1]
         for i in range(detailCount):
@@ -117,20 +132,22 @@ def load(context, filepath):
             yl = y
             xl = x
             coords = ( float(lx), -float(ly), float(z)  )
-            if mesh==0:
+            if mesh==0: # create new mesh
                 mesh = bpy.data.meshes.new( name=meshname )
                 mesh.from_pydata( [Vector(coords)] , [], [] )
                 mesh = object_data_add(bpy.context, mesh)
                 bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
                 bpy.ops.object.mode_set(mode='EDIT')
-            else:
+            else: # add to existing mesh
                 mesh = bmesh.from_edit_mesh(bpy.data.objects[meshname].data)
                 mesh.verts.new(coords)
                 mesh.verts.ensure_lookup_table()
                 mesh.edges.new([mesh.verts[len(mesh.verts)-2],mesh.verts[len(mesh.verts)-1]])
                 bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
+        # set last edge
         if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
             mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
         bpy.ops.object.mode_set(mode='OBJECT')
+        CenterOrigin(scaling)
 
     return {'FINISHED'}

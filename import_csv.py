@@ -30,8 +30,17 @@ import bpy, bmesh, os, struct, csv
 from mathutils import Vector
 from bpy_extras.object_utils import object_data_add
 
+def CenterOrigin(scaling):
+    # taken from
+    # https://blenderartists.org/t/setting-origin-to-world-centre-using-blender-python/1174798
+    bpy.ops.transform.translate(value=(0, 0, 1), orient_type='GLOBAL')
+    #put cursor at origin
+    bpy.context.scene.cursor.location = Vector((0.0, 0.0, 0.0))
+    bpy.context.scene.cursor.rotation_euler = Vector((0.0, 0.0, 0.0))
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.transform.resize(value=(scaling, scaling, scaling))
 
-def load(context, filepath):
+def load(context, filepath, scaling):
     meshname=os.path.basename(filepath)
     csvfile = open(filepath)
     inFile = csv.reader(csvfile, delimiter=',', quotechar='"')
@@ -55,4 +64,5 @@ def load(context, filepath):
     if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
         mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
     bpy.ops.object.mode_set(mode='OBJECT')
+    CenterOrigin(scaling)
     return {'FINISHED'}
