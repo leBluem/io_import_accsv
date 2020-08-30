@@ -21,10 +21,10 @@
 bl_info = {
     "name": "Import-Export AC CSV or AI files",
     "author": "leBluem",
-    "version": (0, 6, 0),
+    "version": (0, 7, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
-    "description": "Import-Export AssettoCorsa CSV or AI files",
+    "description": "Import-Export AssettoCorsa CSV and AI files",
     "warning": "requires Blender v2.8",
     "doc_url": "https://github.com/leBluem/io_import_accsv",
     "category": "Import-Export",

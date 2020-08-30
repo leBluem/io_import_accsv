@@ -29,7 +29,23 @@ Run this script from "File->Export" menu to save desired *.ai file.
 import bpy, bmesh, os, struct, math
 from mathutils import Vector
 
+
+def distance(point1, point2) -> float:
+    """Calculate distance between two points in 3D."""
+    return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
+
+
 def save(context, filepath, shiftCount):
+    selected_obj = bpy.context.selected_objects.copy()
+    if len(selected_obj)!=1:
+        return {'Select only one object!'}
+
+    bm = bmesh.new()
+    ob = context.active_object
+    bm = bpy.context.object.data
+    if len(bm.vertices) < 2:
+        return {'Not enough vertices!'}
+
     # temporary arrays
     data_ideal = []
     data_detail = []
@@ -61,9 +77,6 @@ def save(context, filepath, shiftCount):
     print('Export AC ai-line points: ' + str(detailCount) + ' ' + filepath )
 
     # check if ai line data count matches our vertices
-    bm = bmesh.new()
-    ob = context.active_object
-    bm = bpy.context.object.data
     if len(bm.vertices) != detailCount:
         print('Export AC ai-line: vertex count does not match!')
         return {'ai line and vertex count dont match!'}
@@ -76,14 +89,29 @@ def save(context, filepath, shiftCount):
         runIndex = detailCount+shiftCount+1
         if runIndex>=detailCount:
             runIndex=0
+
+        lastOne = bm.vertices[len(bm.vertices)-1].co
+        lastco = lastOne
+        # we need this to not have 1.0 as pointOfTrack in last dataset
+        distTotal = distance(bm.vertices[0].co, lastOne)
+        # run to get complete length
+        for v in bm.vertices:
+            distTotal += distance(v.co, lastco)
+            lastco = v.co
+
         # print('runIndex ' + str(runIndex))
         for i in range(detailCount):
             # x, z, y, dist, id = data_ideal[i]
             x =  bm.vertices[runIndex].co[0]
             z = -bm.vertices[runIndex].co[1]
-            y =  bm.vertices[runIndex].co[2]
+            y =  bm.vertices[runIndex].co[2] - 0.85
+
+            dist = distance(v.co, lastco)
+            lastco = v.co
+
             # 4 floats, one integer
-            buffer.write( struct.pack("4f i", x, y, z, data_ideal[runIndex][3], data_ideal[runIndex][4] ) )
+            buffer.write( struct.pack("4f i", x, y, z, dist, data_ideal[runIndex][4] ) )
+            # buffer.write( struct.pack("4f i", x, y, z, data_ideal[runIndex][3], data_ideal[runIndex][4] ) )
             runIndex += 1
             if runIndex>=detailCount:
                 runIndex=0

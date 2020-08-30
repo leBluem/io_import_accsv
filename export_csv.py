@@ -36,32 +36,33 @@ def distance(point1, point2) -> float:
 
 
 def save(context, filepath, scaling, shiftCount):
-    bm = bmesh.new()
-    ob = context.active_object
-    bm = bpy.context.object.data
-    with open(filepath, 'w') as file:
-        lastOne = (0.0,0.0,0.0)
-        # run to get last vert coords
-        for v in bm.vertices:
-            lastOne = v.co
-        # we need this to not have 1.0 as pointOfTrack in last CSV line
-        distTotal = distance(bm.vertices[0].co, lastOne)
+    selected_obj = bpy.context.selected_objects.copy()
+    if len(selected_obj)==1:
+        bm = bmesh.new()
+        ob = context.active_object
+        bm = bpy.context.object.data
+        if len(bm.vertices) > 1:
+            with open(filepath, 'w') as file:
+                lastOne = bm.vertices[len(bm.vertices)-1].co
+                lastco = lastOne
+                # we need this to not have 1.0 as pointOfTrack in last CSV line
+                distTotal = distance(bm.vertices[0].co, lastOne)
+                # run to get complete length
+                for v in bm.vertices:
+                    distTotal += distance(v.co, lastco)
+                    lastco = v.co
 
-        # run to count complete length
-        lastv = lastOne
-        for v in bm.vertices:
-            distTotal += distance(v.co, lastv)
-            lastv = v.co
+                lastco = lastOne
+                dist = 0.0
+                # print( str(distTotal) + ' - ' + str(len(bm.vertices)) + 'verts\n' )
+                for v in bm.vertices:
+                    dist += distance(v.co, lastco)
+                    lastco = v.co
+                    file.write("{:.4f},{:.4f},{:.4f},{:.6f}\n".format(
+                                v.co[0]*scaling, v.co[2]*scaling, v.co[1]*scaling,
+                                dist/distTotal )
+                        )
+    else:
+        return {'Select only one Object!'}
 
-        lastv = lastOne
-        dist = 0.0
-        # print( str(distTotal) + ' - ' + str(len(bm.vertices)) + 'verts\n' )
-        for v in bm.vertices:
-            dist += distance(v.co, lastv)
-            lastv = v.co
-            file.write("{:.4f},{:.4f},{:.4f},{:.6f}\n".format(
-                        v.co[0]*scaling, v.co[2]*scaling, v.co[1]*scaling,
-                        dist/distTotal )
-                )
-    bpy.ops.object.mode_set(mode='OBJECT')
     return {'FINISHED'}

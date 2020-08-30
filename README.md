@@ -26,3 +26,4 @@
  - v0.4 fixed first vertex missing in mesh when importing CSV data, added import of walls from AI-line, added export-to CSV
  - v0.5 fixed CSV export, now pointOfTrack param in csv is calculated from distance between points
  - v0.6 added export to "fast_lane.ai"; safety check ensures you only overwrite ai line with same number of points; without walls, best to load walls again after this operation, only xyz values for ideal-line will be changed
+ - v0.7 fixed ai line export, it was still too closely based on original one, now takes distance btw points in account too like csv export
