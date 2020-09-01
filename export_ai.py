@@ -104,7 +104,8 @@ def save(context, filepath, shiftCount):
             # x, z, y, dist, id = data_ideal[i]
             x =  bm.vertices[runIndex].co[0]
             z = -bm.vertices[runIndex].co[1]
-            y =  bm.vertices[runIndex].co[2] - 0.85
+            y =  bm.vertices[runIndex].co[2] - 0.5
+            # y =  bm.vertices[runIndex].co[2]
 
             dist = distance(v.co, lastco)
             lastco = v.co

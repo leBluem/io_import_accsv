@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Import-Export AC CSV or AI files",
     "author": "leBluem",
-    "version": (0, 7, 0),
+    "version": (0, 8, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV and AI files",
@@ -62,8 +62,9 @@ else:
 import bpy
 from bpy.props import (
     StringProperty,
-    IntProperty,
     FloatProperty,
+    IntProperty,
+    BoolProperty,
 )
 from bpy_extras.io_utils import (
     ImportHelper,
@@ -89,8 +90,13 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
             min=0.001, max=1000.0,
             default=1.0,
             )
+    doDoubleCheck: BoolProperty(
+            name="doDoubleCheck (very slow)",
+            description = "check for miss placed values from csv and skip them",
+            default=0,
+            )
     def execute(self, context):
-        return import_csv.load(context, self.properties.filepath, self.scaling)
+        return import_csv.load(context, self.properties.filepath, self.scaling, self.doDoubleCheck)
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -100,6 +106,7 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
         operator = sfile.active_operator
 
         layout.prop(operator, "scaling")
+        layout.prop(operator, "doDoubleCheck")
 
 
 class ImportAI(bpy.types.Operator, ImportHelper):
@@ -149,11 +156,17 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
             )
     shiftCount: IntProperty(
             name="shiftCount",
+            description = "start at vertex index",
             min=-999999, max=999999,
             default=0,
             )
+    reverse: BoolProperty(
+            name="reverse",
+            description = "save in reverse order",
+            default=0,
+            )
     def execute(self, context):
-        return export_csv.save(context, self.properties.filepath, self.scaling, self.shiftCount)
+        return export_csv.save(context, self.properties.filepath, self.scaling, self.shiftCount, self.reverse)
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -163,7 +176,8 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
         operator = sfile.active_operator
 
         layout.prop(operator, "scaling")
-        # layout.prop(operator, "shiftCount")
+        layout.prop(operator, "shiftCount")
+        layout.prop(operator, "reverse")
 
 
 class ExportAI(bpy.types.Operator, ExportHelper):
