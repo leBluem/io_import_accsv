@@ -26,17 +26,13 @@ Usage:
 Run this script from "File->Import" menu and then load the desired CSV file.
 """
 
+
 import bpy, bmesh, os, struct, csv, math
 from mathutils import Vector
 from bpy_extras.object_utils import object_data_add
 
+
 def CenterOrigin(scaling):
-    # taken from
-    # https://blenderartists.org/t/setting-origin-to-world-centre-using-blender-python/1174798
-    bpy.ops.transform.translate(value=(0, 0, 1), orient_type='GLOBAL')
-    #put cursor at origin
-    bpy.context.scene.cursor.location = Vector((0.0, 0.0, 0.0))
-    bpy.context.scene.cursor.rotation_euler = Vector((0.0, 0.0, 0.0))
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
     bpy.ops.transform.resize(value=(scaling, scaling, scaling))
 
@@ -50,6 +46,13 @@ def load(context, filepath, scaling, doDoubleCheck):
     meshname=os.path.basename(filepath)
     csvfile = open(filepath)
     inFile = csv.reader(csvfile, delimiter=',', quotechar='"')
+
+    # insert stuff at origin
+    # taken from, https://blenderartists.org/t/setting-origin-to-world-centre-using-blender-python/1174798
+    bpy.ops.transform.translate(value=(0, 0, 1), orient_type='GLOBAL')
+    bpy.context.scene.cursor.location = Vector((0.0, 0.0, 0.0))
+    bpy.context.scene.cursor.rotation_euler = Vector((0.0, 0.0, 0.0))
+
     skipped = 0
     mesh=0
     for row in inFile:
@@ -59,6 +62,7 @@ def load(context, filepath, scaling, doDoubleCheck):
             mesh = bpy.data.meshes.new( name=meshname )
             mesh.from_pydata( [Vector(coords)], [], [] )
             mesh = object_data_add(bpy.context, mesh)
+            meshname = mesh.name
             bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
             bpy.ops.object.mode_set(mode='EDIT')
         else:

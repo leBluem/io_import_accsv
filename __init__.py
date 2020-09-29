@@ -1,5 +1,4 @@
 # ##### BEGIN GPL LICENSE BLOCK #####
-#
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
@@ -13,15 +12,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
 # ##### END GPL LICENSE BLOCK #####
-
 # <pep8-80 compliant>
 
 bl_info = {
     "name": "Import-Export AC CSV or AI files",
     "author": "leBluem",
-    "version": (0, 8, 0),
+    "version": (0, 9, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV and AI files",
@@ -65,6 +62,7 @@ from bpy.props import (
     FloatProperty,
     IntProperty,
     BoolProperty,
+    EnumProperty,
 )
 from bpy_extras.io_utils import (
     ImportHelper,
@@ -120,12 +118,17 @@ class ImportAI(bpy.types.Operator, ImportHelper):
         options={'HIDDEN'},
     )
     scaling: FloatProperty(
-            name="Scale",
-            min=0.001, max=1000.0,
-            default=1.0,
-            )
+        name="Scale",
+        min=0.001, max=1000.0,
+        default=1.0,
+        )
+    importExtraData = BoolProperty(
+        name = "import all 18 ai line datasets",
+        default = 0,
+        description = "if you want to see how data looks; not recommended"
+        )
     def execute(self, context):
-        return import_ai.load(context, self.properties.filepath, self.scaling)
+        return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData)
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -135,6 +138,7 @@ class ImportAI(bpy.types.Operator, ImportHelper):
         operator = sfile.active_operator
 
         layout.prop(operator, "scaling")
+        layout.prop(operator, "importExtraData")
 
 
 ### export
@@ -194,14 +198,41 @@ class ExportAI(bpy.types.Operator, ExportHelper):
             name="Scale",
             min=0.001, max=1000.0,
             default=1.0,
+            description='',
             )
     shiftCount: IntProperty(
             name="shiftCount",
             min=-999999, max=999999,
+            description='not a good idea for ai-line, ai-line will probably be broken after this',
             default=0,
             )
+    lineIDX: EnumProperty(
+                    name='ailine IDX',
+                    description='ID in ai line, none for AI-line itself',
+                    items=[('-1',  "none",  "none"),
+                           ('0',  "0",  "0"),
+                           ('1',  "1",  "1"),
+                           ('2',  "2",  "2"),
+                           ('3',  "3",  "3"),
+                           ('4',  "4",  "4"),
+                           ('5',  "5",  "5"),
+                           ('6',  "6",  "6"),
+                           ('7',  "7",  "7"),
+                           ('8',  "8",  "8"),
+                           ('9',  "9",  "9"),
+                           ('10', "10", "10"),
+                           ('11', "11", "11"),
+                           ('12', "12", "12"),
+                           ('13', "13", "13"),
+                           ('14', "14", "14"),
+                           ('15', "15", "15"),
+                           ('16', "16", "16"),
+                           ('17', "17", "17")],
+                    default='-1'
+                   )
+
     def execute(self, context):
-        return export_ai.save(context, self.properties.filepath, self.shiftCount)
+        return export_ai.save(context, self.properties.filepath, self.shiftCount, self.lineIDX)
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -209,7 +240,8 @@ class ExportAI(bpy.types.Operator, ExportHelper):
         sfile = context.space_data
         operator = sfile.active_operator
         layout.prop(operator, "scaling")
-        # layout.prop(operator, "shiftCount")
+        layout.prop(operator, "shiftCount")
+        layout.prop(operator, "lineIDX")
 
 
 def menu_func_import(self, context):

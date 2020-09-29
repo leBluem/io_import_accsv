@@ -1,5 +1,4 @@
 # ##### BEGIN GPL LICENSE BLOCK #####
-#
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
@@ -13,11 +12,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
 # ##### END GPL LICENSE BLOCK #####
-
 # <pep8 compliant>
-
 
 """
 This script exports a AssettoCorsa fast_lane.ai/ideal_line.ai from Blender (not for walls, use AC-csv reading with shift!).
@@ -25,6 +21,7 @@ This script exports a AssettoCorsa fast_lane.ai/ideal_line.ai from Blender (not 
 Usage:
 Run this script from "File->Export" menu to save desired *.ai file.
 """
+
 
 import bpy, bmesh, os, struct, math
 from mathutils import Vector
@@ -35,7 +32,7 @@ def distance(point1, point2) -> float:
     return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
 
 
-def save(context, filepath, shiftCount):
+def save(context, filepath, shiftCount, lineIDX):
     selected_obj = bpy.context.selected_objects.copy()
     if len(selected_obj)!=1:
         return {'Select only one object!'}
@@ -74,13 +71,13 @@ def save(context, filepath, shiftCount):
         # now comes more data, no info available for that
         data_rest = buffer.read(filesize)
 
-    print('Export AC ai-line points: ' + str(detailCount) + ' ' + filepath )
 
     # check if ai line data count matches our vertices
     if len(bm.vertices) != detailCount:
         print('Export AC ai-line: vertex count does not match!')
-        return {'ai line and vertex count dont match!'}
+        return {'AI-line point count and vertex-count of selected mesh dont match!'}
 
+    print('Export AC ai-line, points: ' + str(detailCount) + ' ' + filepath )
 
     ## now dissect data from temporary arrays and write changed data
     with open(filepath, "wb") as buffer:
@@ -101,14 +98,16 @@ def save(context, filepath, shiftCount):
 
         # print('runIndex ' + str(runIndex))
         for i in range(detailCount):
-            # x, z, y, dist, id = data_ideal[i]
-            x =  bm.vertices[runIndex].co[0]
-            z = -bm.vertices[runIndex].co[1]
-            y =  bm.vertices[runIndex].co[2] - 0.5
-            # y =  bm.vertices[runIndex].co[2]
-
-            dist = distance(v.co, lastco)
-            lastco = v.co
+            if int(lineIDX)!=-1:
+                # if lineIDX just read current values from orig ai-line
+                x, y, z, dist, id = data_ideal[i]
+            else:
+                x =  bm.vertices[runIndex].co[0]
+                # y =  bm.vertices[runIndex].co[2]
+                y =  bm.vertices[runIndex].co[2]
+                z = -bm.vertices[runIndex].co[1]
+                dist = distance(v.co, lastco)
+                lastco = v.co
 
             # 4 floats, one integer
             buffer.write( struct.pack("4f i", x, y, z, dist, data_ideal[runIndex][4] ) )
@@ -120,9 +119,24 @@ def save(context, filepath, shiftCount):
         runIndex = detailCount+shiftCount+1
         if runIndex>=detailCount:
             runIndex=0
+
+        print( 'Export AC ailine ID: ' + str(lineIDX) )
         for i in range(detailCount):
             # write other data unchanged
             # 18 floats
+            if int(lineIDX)!=-1:
+                L2 = list(data_detail[runIndex])
+                if i==1:
+                    print(str(data_detail[runIndex]))
+                    print(str(L2))
+                if int(lineIDX) == 5:
+                    L2[int(lineIDX)] = bm.vertices[runIndex].co[2] * 100.0
+                else:
+                    L2[int(lineIDX)] = bm.vertices[runIndex].co[2]
+                data_detail[runIndex] = tuple(L2)
+                if i==1:
+                    print(str(L2))
+                    print(str(data_detail[runIndex]))
             data = struct.pack("18f", data_detail[runIndex][0], data_detail[runIndex][1], data_detail[runIndex][2], data_detail[runIndex][3], data_detail[runIndex][4], data_detail[runIndex][5], data_detail[runIndex][6], data_detail[runIndex][7], data_detail[runIndex][8], data_detail[runIndex][9], data_detail[runIndex][10], data_detail[runIndex][11], data_detail[runIndex][12], data_detail[runIndex][13], data_detail[runIndex][14], data_detail[runIndex][15], data_detail[runIndex][16], data_detail[runIndex][17])
             buffer.write(data)
             runIndex += 1
@@ -132,4 +146,5 @@ def save(context, filepath, shiftCount):
         # write rest of data unchanged
         buffer.write(data_rest)
 
+    print('Export AC ai-line: success!')
     return {'FINISHED'}
