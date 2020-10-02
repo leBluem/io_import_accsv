@@ -59,8 +59,10 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling):
                         y = y - math.sin((-direction - 90) * math.pi / 180) * _wallRight
                 elif idx==5:
                     z = data_detail[i][idx] / 100.0
-                else:
+                elif idx==1:
                     z = data_detail[i][idx]
+                else:
+                    z = data_detail[i][idx] * 100
             coords = ( float(x), -float(y), float(z)  )
 
             if i==0:
@@ -86,10 +88,10 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling):
 
 def load(context, filepath, scaling, importExtraData):
     with open(filepath, "rb") as buffer:
-        meshname = os.path.basename(filepath)
-        meshnameBL = meshname + '_border_left'
-        meshnameBR = meshname + '_border_right'
-        meshnameDetail = os.path.basename(filepath) + 'detail'
+        meshname       = os.path.basename(filepath)
+        meshnameBL     = meshname + '_border_left'
+        meshnameBR     = meshname + '_border_right'
+        meshnameDetail = meshname + '_detail'
 
         # insert stuff at origin
         # taken from, https://blenderartists.org/t/setting-origin-to-world-centre-using-blender-python/1174798

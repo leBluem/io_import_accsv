@@ -126,17 +126,19 @@ def save(context, filepath, shiftCount, lineIDX):
             # 18 floats
             if int(lineIDX)!=-1:
                 L2 = list(data_detail[runIndex])
-                if i==1:
-                    print(str(data_detail[runIndex]))
-                    print(str(L2))
+                # if i==1:
+                #     print(str(data_detail[runIndex]))
+                #     print(str(L2))
                 if int(lineIDX) == 5:
                     L2[int(lineIDX)] = bm.vertices[runIndex].co[2] * 100.0
+                elif idx!=1:
+                    L2[int(lineIDX)] = bm.vertices[runIndex].co[2] / 100.0
                 else:
                     L2[int(lineIDX)] = bm.vertices[runIndex].co[2]
                 data_detail[runIndex] = tuple(L2)
-                if i==1:
-                    print(str(L2))
-                    print(str(data_detail[runIndex]))
+                # if i==1:
+                #     print(str(L2))
+                #     print(str(data_detail[runIndex]))
             data = struct.pack("18f", data_detail[runIndex][0], data_detail[runIndex][1], data_detail[runIndex][2], data_detail[runIndex][3], data_detail[runIndex][4], data_detail[runIndex][5], data_detail[runIndex][6], data_detail[runIndex][7], data_detail[runIndex][8], data_detail[runIndex][9], data_detail[runIndex][10], data_detail[runIndex][11], data_detail[runIndex][12], data_detail[runIndex][13], data_detail[runIndex][14], data_detail[runIndex][15], data_detail[runIndex][16], data_detail[runIndex][17])
             buffer.write(data)
             runIndex += 1
