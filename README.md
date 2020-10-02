@@ -18,7 +18,7 @@
    "Import-Export: Import AC CSV or AI files"
 
 ***How to use***
- - new items in "File -> Import" menu
+ - new items in "File -> Import/Export" menu
 
 ***History***
  - v0.1 initial version
