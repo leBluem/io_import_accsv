@@ -131,7 +131,7 @@ def save(context, filepath, shiftCount, lineIDX):
                 #     print(str(L2))
                 if int(lineIDX) == 5:
                     L2[int(lineIDX)] = bm.vertices[runIndex].co[2] * 100.0
-                elif idx!=1:
+                elif int(lineIDX) != 1:
                     L2[int(lineIDX)] = bm.vertices[runIndex].co[2] / 100.0
                 else:
                     L2[int(lineIDX)] = bm.vertices[runIndex].co[2]

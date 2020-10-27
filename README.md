@@ -31,3 +31,5 @@
  - v0.8 idk if this is needed at all, i think it does not really matter, at which order the list of border-vertices is, but i did it anyway; added reverse option for CSV export, added "shiftCount" option for CSV export, so you can change which index in list of vertices is taken first, added (VERRRY slow) option to check for double vertices on CSV import
  - v0.9 fixed first time importing, fixed importing another ai-line after first time import, added optional import/export for the other 18 data points inside the ai-line, plain values along the normal ai-line, idk if its helpfull in any way, added some more output to blender system console
  - v1.0 added multiplier for ai-line-details if enabled, for both import+export, to make it more visible/usefull
+ - v1.1 fixed ai-line export for idx!=5 and not ai line itself
+
