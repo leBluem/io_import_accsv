@@ -18,13 +18,13 @@
 bl_info = {
     "name": "Import-Export AC CSV or AI files",
     "author": "leBluem",
-    "version": (1, 0, 0),
+    "version": (1, 2, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV and AI files",
     "warning": "requires Blender v2.8 or above",
-    "doc_url": "https://github.com/leBluem/io_import_accsv",
     "category": "Import-Export",
+    "doc_url": "https://github.com/leBluem/io_import_accsv",
 }
 
 import sys
@@ -115,20 +115,30 @@ class ImportAI(bpy.types.Operator, ImportHelper):
     filename_ext = ".ai"
     filter_glob: StringProperty(
         default="*.ai",
-        options={'HIDDEN'},
+        options={'HIDDEN'}
     )
     scaling: FloatProperty(
         name="Scale",
         min=0.001, max=1000.0,
-        default=1.0,
+        default=1.0
         )
     importExtraData = BoolProperty(
         name = "import all 18 ai line datasets",
         default = 0,
         description = "if you want to see how data looks; not recommended"
         )
+    createCameras = BoolProperty(
+        name = "create cameras.ini from ai-line",
+        default = 0,
+        description = "meshes created for observation"
+        )
+    maxDist: FloatProperty(
+        name="Min Distance btw cameras",
+        min=1.0, max=1000.0,
+        default=350.0
+        )
     def execute(self, context):
-        return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData)
+        return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData, self.createCameras, self.maxDist)
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -169,8 +179,14 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
             description = "save in reverse order",
             default=0,
             )
+    conv2Curve2mesh: BoolProperty(
+            name="sort by converting to curve",
+            description = "sort by using curves, but at least 0 must be correct ",
+            default=0,
+            )
     def execute(self, context):
-        return export_csv.save(context, self.properties.filepath, self.scaling, self.shiftCount, self.reverse)
+        return export_csv.save(context, self.properties.filepath, self.scaling, self.shiftCount, self.reverse, self.conv2Curve2mesh)
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -182,6 +198,7 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
         layout.prop(operator, "scaling")
         layout.prop(operator, "shiftCount")
         layout.prop(operator, "reverse")
+        layout.prop(operator, "conv2Curve2mesh")
 
 
 class ExportAI(bpy.types.Operator, ExportHelper):

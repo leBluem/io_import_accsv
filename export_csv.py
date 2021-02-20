@@ -34,12 +34,31 @@ def distance(point1, point2) -> float:
     """Calculate distance between two points in 3D."""
     return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
 
+def ConvertToMesh(obj):
+    act = bpy.context.view_layer.objects.active
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.convert(target="MESH")
+    bpy.context.view_layer.objects.active = act
 
-def save(context, filepath, scaling, shiftCount, reverse):
+def ConvertToCurve(obj):
+    act = bpy.context.view_layer.objects.active
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.convert(target="CURVE")
+    bpy.context.view_layer.objects.active = act
+
+def save(context, filepath, scaling, shiftCount, reverse, conv2Curve2mesh):
     selected_obj = bpy.context.selected_objects.copy()
     if len(selected_obj)==1:
         bm = bmesh.new()
         ob = context.active_object
+
+        if conv2Curve2mesh:
+            ConvertToCurve(ob)
+            ConvertToMesh(ob)
+            #bpy.ops.object.mode_set(mode='EDIT')
+            #bpy.ops.mesh.sort_elements(type='REVERSE', elements={'VERT'})
+            #bpy.ops.object.mode_set(mode='OBJECT')
+
         bm = bpy.context.object.data
 
         runIndex = len(bm.vertices)+shiftCount+1
