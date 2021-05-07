@@ -42,19 +42,26 @@ def distance(point1, point2) -> float:
     return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
 
 
-def load(context, filepath, scaling, doDoubleCheck):
+def load(context, filepath, scaling, doDoubleCheck, createFaces):
     meshname=os.path.basename(filepath)
     csvfile = open(filepath)
     inFile = csv.reader(csvfile, delimiter=',', quotechar='"')
 
     # insert stuff at origin
     # taken from, https://blenderartists.org/t/setting-origin-to-world-centre-using-blender-python/1174798
-    bpy.ops.transform.translate(value=(0, 0, 1), orient_type='GLOBAL')
-    bpy.context.scene.cursor.location = Vector((0.0, 0.0, 0.0))
-    bpy.context.scene.cursor.rotation_euler = Vector((0.0, 0.0, 0.0))
+    if bpy.app.version[1]<80:
+        bpy.ops.transform.translate(value=(0, 0, 1), constraint_orientation='GLOBAL')
+        bpy.context.scene.cursor_location[0], \
+        bpy.context.scene.cursor_location[1], \
+        bpy.context.scene.cursor_location[2] = 0, 0, 0
+    else:
+        bpy.ops.transform.translate(value=(0, 0, 1), orient_type='GLOBAL')
+        bpy.context.scene.cursor.location = Vector((0.0, 0.0, 0.0))
+        bpy.context.scene.cursor.rotation_euler = Vector((0.0, 0.0, 0.0))
 
     skipped = 0
-    mesh=0
+    mesh = 0
+    vertC = 0
     for row in inFile:
         #  column order (1: x, 2: z, 3: y)
         coords = (float(row[0]),float(row[2]),float(row[1]))
@@ -62,9 +69,11 @@ def load(context, filepath, scaling, doDoubleCheck):
             mesh = bpy.data.meshes.new( name=meshname )
             mesh.from_pydata( [Vector(coords)], [], [] )
             mesh = object_data_add(bpy.context, mesh)
-            meshname = mesh.name
+            if bpy.app.version[1]>=80:
+                meshname = mesh.name
             bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
             bpy.ops.object.mode_set(mode='EDIT')
+            vertC = 1
         else:
             mesh = bmesh.from_edit_mesh(bpy.data.objects[meshname].data)
             skip = False
@@ -75,14 +84,16 @@ def load(context, filepath, scaling, doDoubleCheck):
                         skipped += 1
                         skip = True
                         break
-            if skip==False:
+            if not skip:
                 mesh.verts.new( coords )
                 mesh.verts.ensure_lookup_table()
                 mesh.edges.new([mesh.verts[len(mesh.verts)-2],mesh.verts[len(mesh.verts)-1]])
                 bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
+
     # set last edge
     if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
         mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
+
     print('Imported ' + str(len(mesh.verts)) + ' points, points skipped: ' + str(skipped) )
     bpy.ops.object.mode_set(mode='OBJECT')
     CenterOrigin(scaling)

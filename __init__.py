@@ -18,7 +18,7 @@
 bl_info = {
     "name": "Import-Export AC CSV or AI files",
     "author": "leBluem",
-    "version": (1, 2, 0),
+    "version": (1, 3, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV and AI files",
@@ -73,38 +73,48 @@ from bpy_extras.io_utils import (
 
 ### import
 
+
 class ImportCSV(bpy.types.Operator, ImportHelper):
     """Load a CSV File"""
     bl_idname = "import_csv.read"
     bl_label = "Import CSV"
     bl_options = {'PRESET', 'UNDO'}
     filename_ext = ".csv"
-    filter_glob: StringProperty(
+    filter_glob = StringProperty(
         default="*.csv;*.ini",
         options={'HIDDEN'},
     )
-    scaling: FloatProperty(
-            name="Scale",
-            min=0.001, max=1000.0,
-            default=1.0,
-            )
-    doDoubleCheck: BoolProperty(
-            name="doDoubleCheck (very slow)",
-            description = "check for miss placed values from csv and skip them",
-            default=0,
-            )
+    scaling : FloatProperty(
+        name="Scale",
+        min=0.01, max=100.0,
+        default=1.0,
+        )
+    doDoubleCheck : BoolProperty(
+        name="doDoubleCheck (very slow)",
+        description = "check for miss placed values from csv and skip them",
+        default=0,
+        )
+    createFaces : BoolProperty(
+        name = "create face after 4 verts",
+        default = 0,
+        description = "text"
+        )
+
     def execute(self, context):
-        return import_csv.load(context, self.properties.filepath, self.scaling, self.doDoubleCheck)
+        return import_csv.load(context, self.properties.filepath, self.scaling, self.doDoubleCheck, self.createFaces)
+
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
+        if bpy.app.version[1]>=80:
+            layout.use_property_split = True
+            layout.use_property_decorate = False  # No animation.
 
         sfile = context.space_data
         operator = sfile.active_operator
 
         layout.prop(operator, "scaling")
         layout.prop(operator, "doDoubleCheck")
+        layout.prop(operator, "createFaces")
 
 
 class ImportAI(bpy.types.Operator, ImportHelper):
@@ -113,42 +123,47 @@ class ImportAI(bpy.types.Operator, ImportHelper):
     bl_label = "Import AI line"
     bl_options = {'PRESET', 'UNDO'}
     filename_ext = ".ai"
-    filter_glob: StringProperty(
+    filter_glob = StringProperty(
         default="*.ai",
-        options={'HIDDEN'}
+        options={'HIDDEN'},
     )
-    scaling: FloatProperty(
+    scaling : FloatProperty(
         name="Scale",
-        min=0.001, max=1000.0,
-        default=1.0
+        min=0.01, max=100.0,
+        default=1.0,
         )
-    importExtraData = BoolProperty(
+    importExtraData : BoolProperty(
         name = "import all 18 ai line datasets",
         default = 0,
         description = "if you want to see how data looks; not recommended"
         )
-    createCameras = BoolProperty(
+    createCameras : BoolProperty(
         name = "create cameras.ini from ai-line",
         default = 0,
         description = "meshes created for observation"
         )
-    maxDist: FloatProperty(
+    maxDist : FloatProperty(
         name="Min Distance btw cameras",
         min=1.0, max=1000.0,
         default=350.0
         )
+
     def execute(self, context):
         return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData, self.createCameras, self.maxDist)
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
+        if bpy.app.version[1]>=80:
+            layout.use_property_split = True
+            layout.use_property_decorate = False  # No animation.
 
         sfile = context.space_data
         operator = sfile.active_operator
 
         layout.prop(operator, "scaling")
         layout.prop(operator, "importExtraData")
+        ### not finished atm
+        #layout.prop(operator, "createCameras")
+        #layout.prop(operator, "maxDist")
 
 
 ### export
@@ -159,38 +174,40 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
     bl_label = "Export AC CSV"
     bl_options = {'PRESET', 'UNDO'}
     filename_ext = ".csv"
-    filter_glob: StringProperty(
+    filter_glob = StringProperty(
         default="*.csv;*.ini",
         options={'HIDDEN'},
     )
-    scaling: FloatProperty(
-            name="Scale",
-            min=0.001, max=1000.0,
-            default=1.0,
-            )
-    shiftCount: IntProperty(
-            name="shiftCount",
-            description = "start at vertex index",
-            min=-999999, max=999999,
-            default=0,
-            )
-    reverse: BoolProperty(
-            name="reverse",
-            description = "save in reverse order",
-            default=0,
-            )
+    scaling : FloatProperty(
+        name="Scale",
+        min=0.01, max=100.0,
+        default=1.0,
+        )
+    shiftCount : IntProperty(
+        name="shiftCount",
+        description = "start at vertex index",
+        min=-999999, max=999999,
+        default=0,
+        )
+    reverse : BoolProperty(
+        name="reverse",
+        description = "save in reverse order",
+        default=0,
+        )
     conv2Curve2mesh: BoolProperty(
-            name="sort by converting to curve",
-            description = "sort by using curves, but at least 0 must be correct ",
-            default=0,
-            )
+        name="sort by converting to curve",
+        description = "sort by using curves, but at least 0 must be correct ",
+        default=0,
+        )
+
     def execute(self, context):
         return export_csv.save(context, self.properties.filepath, self.scaling, self.shiftCount, self.reverse, self.conv2Curve2mesh)
 
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
+        if bpy.app.version[1]>=80:
+            layout.use_property_split = True
+            layout.use_property_decorate = False  # No animation.
 
         sfile = context.space_data
         operator = sfile.active_operator
@@ -207,53 +224,54 @@ class ExportAI(bpy.types.Operator, ExportHelper):
     bl_label = "Export AC AI line"
     bl_options = {'PRESET', 'UNDO'}
     filename_ext = ".ai"
-    filter_glob: StringProperty(
+    filter_glob = StringProperty(
         default="*.ai",
         options={'HIDDEN'},
     )
-    scaling: FloatProperty(
-            name="Scale",
-            min=0.001, max=1000.0,
-            default=1.0,
-            description='',
-            )
-    shiftCount: IntProperty(
-            name="shiftCount",
-            min=-999999, max=999999,
-            description='not a good idea for ai-line, ai-line will probably be broken after this',
-            default=0,
-            )
-    lineIDX: EnumProperty(
-                    name='ailine IDX',
-                    description='ID in ai line, none for AI-line itself',
-                    items=[('-1',  "none",  "none"),
-                           ('0',  "0",  "0"),
-                           ('1',  "1",  "1"),
-                           ('2',  "2",  "2"),
-                           ('3',  "3",  "3"),
-                           ('4',  "4",  "4"),
-                           ('5',  "5",  "5"),
-                           ('6',  "6",  "6"),
-                           ('7',  "7",  "7"),
-                           ('8',  "8",  "8"),
-                           ('9',  "9",  "9"),
-                           ('10', "10", "10"),
-                           ('11', "11", "11"),
-                           ('12', "12", "12"),
-                           ('13', "13", "13"),
-                           ('14', "14", "14"),
-                           ('15', "15", "15"),
-                           ('16', "16", "16"),
-                           ('17', "17", "17")],
-                    default='-1'
-                   )
+    scaling : FloatProperty(
+        name="Scale",
+        min=0.01, max=100.0,
+        default=1.0,
+        description='',
+        )
+    shiftCount : IntProperty(
+        name="shiftCount",
+        min=-999999, max=999999,
+        description='not a good idea for ai-line, ai-line will probably be broken after this',
+        default=0,
+        )
+    lineIDX : EnumProperty(
+        name='ailine IDX',
+        description='ID in ai line, none for AI-line itself',
+        items=[('-1',  "none",  "none"),
+                ('0',  "0",  "0"),
+                ('1',  "1",  "1"),
+                ('2',  "2",  "2"),
+                ('3',  "3",  "3"),
+                ('4',  "4",  "4"),
+                ('5',  "5",  "5"),
+                ('6',  "6",  "6"),
+                ('7',  "7",  "7"),
+                ('8',  "8",  "8"),
+                ('9',  "9",  "9"),
+                ('10', "10", "10"),
+                ('11', "11", "11"),
+                ('12', "12", "12"),
+                ('13', "13", "13"),
+                ('14', "14", "14"),
+                ('15', "15", "15"),
+                ('16', "16", "16"),
+                ('17', "17", "17")],
+        default='-1'
+        )
 
     def execute(self, context):
         return export_ai.save(context, self.properties.filepath, self.shiftCount, self.lineIDX)
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
+        if bpy.app.version[1]>=80:
+            layout.use_property_split = True
+            layout.use_property_decorate = False  # No animation.
         sfile = context.space_data
         operator = sfile.active_operator
         layout.prop(operator, "scaling")
@@ -281,15 +299,24 @@ classes = (
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
-    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
+    if bpy.app.version[1]<80:
+        bpy.types.INFO_MT_file_import.append(menu_func_import)
+        bpy.types.INFO_MT_file_export.append(menu_func_export)
+    else:
+        bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+        bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 
 def unregister():
-    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
-    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
     for cls in classes:
         bpy.utils.unregister_class(cls)
+
+    if bpy.app.version[1]<80:
+        bpy.types.INFO_MT_file_import.remove(menu_func_import)
+        bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    else:
+        bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+        bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
 
 if __name__ == "__main__":
