@@ -32,5 +32,5 @@
  - v0.9 fixed first time importing, fixed importing another ai-line after first time import, added optional import/export for the other 18 data points inside the ai-line, plain values along the normal ai-line, idk if its helpfull in any way, added some more output to blender system console
  - v1.0 added multiplier for ai-line-details if enabled, for both import+export, to make it more visible/usefull
  - v1.1 fixed ai-line export for idx!=5 and not ai line itself
- - v1.2 ...
+ - v1.2 added option for CSV export to sort vertices by converting to curve and back to mesh
  - v1.3 fixed some error introduced by not cleanly packing up new version
