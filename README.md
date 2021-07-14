@@ -34,3 +34,4 @@
  - v1.1 fixed ai-line export for idx!=5 and not ai line itself
  - v1.2 added option for CSV export to sort vertices by converting to curve and back to mesh
  - v1.3 fixed some error introduced by not cleanly packing up new version
+ - v1.4 re-added now missing Conver2Curve and back for CSV-export

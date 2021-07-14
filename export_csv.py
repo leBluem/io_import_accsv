@@ -35,6 +35,20 @@ def distance(point1, point2) -> float:
     return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
 
 
+def ConvertToMesh(obj):
+    act = bpy.context.view_layer.objects.active
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.convert(target="MESH")
+    bpy.context.view_layer.objects.active = act
+
+
+def ConvertToCurve(obj):
+    act = bpy.context.view_layer.objects.active
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.convert(target="CURVE")
+    bpy.context.view_layer.objects.active = act
+
+
 def save(context, filepath, scaling, shiftCount, reverse, conv2Curve2mesh):
     # return export_csv.save(context, self.properties.filepath, self.scaling, self.shiftCount, self.reverse, self.conv2Curve2mesh)
     selected_obj = bpy.context.selected_objects.copy()

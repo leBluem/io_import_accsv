@@ -18,7 +18,7 @@
 bl_info = {
     "name": "Import-Export AC CSV or AI files",
     "author": "leBluem",
-    "version": (1, 3, 0),
+    "version": (1, 4, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV and AI files",
