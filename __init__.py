@@ -18,7 +18,7 @@
 bl_info = {
     "name": "Import-Export AC CSV or AI files",
     "author": "leBluem",
-    "version": (1, 4, 0),
+    "version": (1, 5, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV and AI files",
@@ -94,14 +94,20 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
         description = "check for miss placed values from csv and skip them",
         default=0,
         )
+    # unused atm
     createFaces : BoolProperty(
         name = "create face after 4 verts",
         default = 0,
         description = "text"
         )
+    ignoreLastEdge : BoolProperty(
+        name = "dont connect first/last verts",
+        default = 0,
+        description = "usefull when importing A2B stuff"
+        )
 
     def execute(self, context):
-        return import_csv.load(context, self.properties.filepath, self.scaling, self.doDoubleCheck, self.createFaces)
+        return import_csv.load(context, self.properties.filepath, self.scaling, self.doDoubleCheck, self.createFaces, self.ignoreLastEdge)
 
     def draw(self, context):
         layout = self.layout
@@ -114,7 +120,8 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
 
         layout.prop(operator, "scaling")
         layout.prop(operator, "doDoubleCheck")
-        layout.prop(operator, "createFaces")
+        # layout.prop(operator, "createFaces")
+        layout.prop(operator, "ignoreLastEdge")
 
 
 class ImportAI(bpy.types.Operator, ImportHelper):
@@ -137,19 +144,26 @@ class ImportAI(bpy.types.Operator, ImportHelper):
         default = 0,
         description = "if you want to see how data looks; not recommended"
         )
+    # unused atm
     createCameras : BoolProperty(
         name = "create cameras.ini from ai-line",
         default = 0,
         description = "meshes created for observation"
         )
+    # unused atm
     maxDist : FloatProperty(
         name="Min Distance btw cameras",
         min=1.0, max=1000.0,
         default=350.0
         )
+    ignoreLastEdge : BoolProperty(
+        name = "dont connect first/last verts",
+        default = 0,
+        description = "usefull when importing A2B stuff"
+        )
 
     def execute(self, context):
-        return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData, self.createCameras, self.maxDist)
+        return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData, self.createCameras, self.maxDist, self.ignoreLastEdge)
     def draw(self, context):
         layout = self.layout
         if bpy.app.version[1]>=80:
@@ -164,6 +178,7 @@ class ImportAI(bpy.types.Operator, ImportHelper):
         ### not finished atm
         #layout.prop(operator, "createCameras")
         #layout.prop(operator, "maxDist")
+        layout.prop(operator, "ignoreLastEdge")
 
 
 ### export

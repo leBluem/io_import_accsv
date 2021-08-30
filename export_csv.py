@@ -92,7 +92,8 @@ def save(context, filepath, scaling, shiftCount, reverse, conv2Curve2mesh):
                 lastco = lastOne
                 dist = 0.0
                 # print( str(distTotal) + ' - ' + str(len(bm.vertices)) + 'verts\n' )
-                for i in range(len(bm.vertices)-1):
+                # for i in range(len(bm.vertices)-1):
+                for i in range(len(bm.vertices)):
                     vco = bm.vertices[runIndex].co
                     dist += distance(vco, lastco)
                     lastco = vco

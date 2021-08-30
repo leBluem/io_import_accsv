@@ -35,3 +35,4 @@
  - v1.2 added option for CSV export to sort vertices by converting to curve and back to mesh
  - v1.3 fixed some error introduced by not cleanly packing up new version
  - v1.4 re-added now missing Conver2Curve and back for CSV-export
+ - v1.5 fixed last point on CSV export, added option to skip connection from last2first vertex (for a2b tracks)

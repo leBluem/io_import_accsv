@@ -42,7 +42,7 @@ def distance(point1, point2) -> float:
     return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
 
 
-def load(context, filepath, scaling, doDoubleCheck, createFaces):
+def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge):
     meshname=os.path.basename(filepath)
     csvfile = open(filepath)
     inFile = csv.reader(csvfile, delimiter=',', quotechar='"')
@@ -91,8 +91,9 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces):
                 bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
 
     # set last edge
-    if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
-        mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
+    if not ignoreLastEdge:
+        if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
+            mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
 
     print('Imported ' + str(len(mesh.verts)) + ' points, points skipped: ' + str(skipped) )
     bpy.ops.object.mode_set(mode='OBJECT')

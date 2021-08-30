@@ -39,7 +39,7 @@ def distance(point1, point2) -> float:
     """Calculate distance between two points in 3D."""
     return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
 
-def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling):
+def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ignoreLastEdge):
     # create vertices from ai line data
     mesh = 0
     if idx!=-1:
@@ -94,12 +94,13 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling):
             mesh.edges.new([mesh.verts[len(mesh.verts)-2],mesh.verts[len(mesh.verts)-1]])
             bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
     # set last edge
-    if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
-        mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
+    if not ignoreLastEdge:
+        if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
+            mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
     bpy.ops.object.mode_set(mode='OBJECT')
     CenterOrigin(scaling)
 
-def load(context, filepath, scaling, importExtraData, createCameras, maxDist):
+def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ignoreLastEdge):
     with open(filepath, "rb") as buffer:
         meshname       = os.path.basename(filepath)
         meshnameBL     = meshname + '_border_left'
@@ -141,26 +142,26 @@ def load(context, filepath, scaling, importExtraData, createCameras, maxDist):
         #    CreateCameras()
 
         # build mesh from ai line
-        CreateMeshFromDataPoints(meshnameBL , 6, data_ideal, data_detail, scaling)
-        CreateMeshFromDataPoints(meshnameBR , 7, data_ideal, data_detail, scaling)
+        CreateMeshFromDataPoints(meshnameBL , 6, data_ideal, data_detail, scaling, ignoreLastEdge)
+        CreateMeshFromDataPoints(meshnameBR , 7, data_ideal, data_detail, scaling, ignoreLastEdge)
         print(str(importExtraData))
         if importExtraData:
-            CreateMeshFromDataPoints(meshnameDetail , 0, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail , 1, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail , 2, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail , 3, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail , 4, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail , 5, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail , 8, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail , 9, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail ,10, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail ,11, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail ,12, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail ,13, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail ,14, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail ,15, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail ,16, data_ideal, data_detail, scaling)
-            CreateMeshFromDataPoints(meshnameDetail ,17, data_ideal, data_detail, scaling)
-        CreateMeshFromDataPoints(meshname       ,-1, data_ideal, data_detail, scaling)
+            CreateMeshFromDataPoints(meshnameDetail , 0, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail , 1, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail , 2, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail , 3, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail , 4, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail , 5, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail , 8, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail , 9, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail ,10, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail ,11, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail ,12, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail ,13, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail ,14, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail ,15, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail ,16, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshnameDetail ,17, data_ideal, data_detail, scaling, ignoreLastEdge)
+        CreateMeshFromDataPoints(meshname       ,-1, data_ideal, data_detail, scaling, ignoreLastEdge)
 
     return {'FINISHED'}
