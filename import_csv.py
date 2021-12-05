@@ -38,18 +38,6 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
         bpy.context.scene.cursor.location = Vector((0.0, 0.0, 0.0))
         bpy.context.scene.cursor.rotation_euler = Vector((0.0, 0.0, 0.0))
 
-    s=''
-    with codecs.open(filepath, 'r', errors='ignore') as file:
-        s = file.read()
-    if 'POSITION=' in s and '[' in s and 'NAME=':
-        ini = configparser.ConfigParser(inline_comment_prefixes=';')
-        ini.optionxform=str # keep upper/lower case
-        ini.read(filepath)
-        # for sects in ini.sections():
-        #     if ini.has_option(sects,'NAME') and ini.has_option(sects, 'POSITION'):
-        #
-        return {'FINISHED'}
-
     skipped = 0
     mesh = 0
     vertC = 0
@@ -60,7 +48,7 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
             mesh = bpy.data.meshes.new( name=meshname )
             mesh.from_pydata( [Vector(coords)], [], [] )
             mesh = object_data_add(bpy.context, mesh)
-            if bpy.app.version[1]>=80:
+            if bpy.app.version[1]>=80 and bpy.app.version[0]>=2:
                 meshname = mesh.name
             bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
             bpy.ops.object.mode_set(mode='EDIT')

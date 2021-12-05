@@ -5,7 +5,7 @@ Usage:
 Run this script from "File->Export" menu and then save the desired CSV file.
 """
 
-import bpy, bmesh, os, struct, csv
+import bpy, bmesh, os, struct, csv, codecs
 import math, mathutils
 
 
@@ -29,7 +29,6 @@ def ConvertToCurve(obj):
 
 
 def save(context, filepath, scaling, shiftCount, reverse, conv2Curve2mesh, skipPoTColumn):
-    # return export_csv.save(context, self.properties.filepath, self.scaling, self.shiftCount, self.reverse, self.conv2Curve2mesh)
     selected_obj = bpy.context.selected_objects.copy()
     if len(selected_obj)==1:
         bm = bmesh.new()
@@ -38,9 +37,6 @@ def save(context, filepath, scaling, shiftCount, reverse, conv2Curve2mesh, skipP
         if conv2Curve2mesh:
             ConvertToCurve(ob)
             ConvertToMesh(ob)
-            #bpy.ops.object.mode_set(mode='EDIT')
-            #bpy.ops.mesh.sort_elements(type='REVERSE', elements={'VERT'})
-            #bpy.ops.object.mode_set(mode='OBJECT')
 
         bm = bpy.context.object.data
 

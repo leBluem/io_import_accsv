@@ -1,10 +1,10 @@
 bl_info = {
-    "name": "Import-Export AC CSV or AI files",
+    "name": "Import-Export AC CSV/INI/AI files",
     "author": "leBluem",
     "version": (1, 6, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
-    "description": "Import-Export AssettoCorsa CSV and AI files",
+    "description": "Import-Export AssettoCorsa CSV/AI or cameras.ini files",
     "warning": "requires Blender v2.8 or above",
     "category": "Import-Export",
     "doc_url": "https://github.com/leBluem/io_import_accsv",
@@ -29,13 +29,17 @@ if flag is False:
 # ----------------------------------------------
 if "bpy" in locals():
     import imp
+    imp.reload(import_ini)
     imp.reload(import_csv)
     imp.reload(import_ai)
+    imp.reload(export_ini)
     imp.reload(export_csv)
     imp.reload(export_ai)
 else:
+    import import_ini
     import import_csv
     import import_ai
+    import export_ini
     import export_csv
     import export_ai
 
@@ -56,6 +60,36 @@ from bpy_extras.io_utils import (
 
 ### import
 
+
+class ImportINI(bpy.types.Operator, ImportHelper):
+    """Load a camera.INI File"""
+    bl_idname = "import_ini.read"
+    bl_label = "Import INI"
+    bl_options = {'PRESET', 'UNDO'}
+    filename_ext = ".ini"
+    filter_glob = StringProperty(
+        default="*.ini",
+        options={'HIDDEN'},
+    )
+    scaling : FloatProperty(
+        name="Scale",
+        min=0.01, max=100.0,
+        default=1.0,
+        )
+
+    def execute(self, context):
+        return import_ini.load(context, self.properties.filepath, self.scaling)
+
+    def draw(self, context):
+        layout = self.layout
+        if bpy.app.version[1]>=80 and bpy.app.version[0]<=3:
+            layout.use_property_split = True
+            layout.use_property_decorate = False  # No animation.
+
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        layout.prop(operator, "scaling")
 
 class ImportCSV(bpy.types.Operator, ImportHelper):
     """Load a CSV File"""
@@ -105,7 +139,6 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
         layout.prop(operator, "doDoubleCheck")
         # layout.prop(operator, "createFaces")
         layout.prop(operator, "ignoreLastEdge")
-
 
 class ImportAI(bpy.types.Operator, ImportHelper):
     """Load fast_lane.ai"""
@@ -165,6 +198,42 @@ class ImportAI(bpy.types.Operator, ImportHelper):
 
 
 ### export
+
+class ExportINI(bpy.types.Operator, ExportHelper):
+    """Save a camera.INI File"""
+    bl_idname = "export_ini.write"
+    bl_label = "Export AC INI"
+    bl_options = {'PRESET', 'UNDO'}
+    filename_ext = ".ini"
+    filter_glob = StringProperty(
+        default="*.ini",
+        options={'HIDDEN'},
+    )
+    scaling : FloatProperty(
+        name="Scale",
+        min=0.01, max=100.0,
+        default=1.0,
+        )
+    reverse : BoolProperty(
+        name="reverse",
+        description = "save in reverse order",
+        default=0,
+        )
+    def execute(self, context):
+        return export_ini.save(context, self.properties.filepath, self.scaling, self.reverse)
+
+    def draw(self, context):
+        layout = self.layout
+        if bpy.app.version[1]>=80 and bpy.app.version[0]<3:
+            layout.use_property_split = True
+            layout.use_property_decorate = False  # No animation.
+
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        layout.prop(operator, "scaling")
+        # unsused atm
+        #layout.prop(operator, "reverse")
 
 class ExportCSV(bpy.types.Operator, ExportHelper):
     """Save a CSV File"""
@@ -283,17 +352,21 @@ class ExportAI(bpy.types.Operator, ExportHelper):
 
 
 def menu_func_import(self, context):
+    self.layout.operator(ImportINI.bl_idname, text="AC camera_x.ini (.ini)")
     self.layout.operator(ImportCSV.bl_idname, text="AC side_x.csv (.csv)")
     self.layout.operator(ImportAI.bl_idname, text="AC fast_lane.ai (.ai)")
 
 def menu_func_export(self, context):
+    self.layout.operator(ExportINI.bl_idname, text="AC camera_x.ini (.ini)")
     self.layout.operator(ExportCSV.bl_idname, text="AC side_x.csv (.csv)")
     self.layout.operator(ExportAI.bl_idname, text="AC fast_lane.ai (.ai)")
 
 
 classes = (
+    ImportINI,
     ImportCSV,
     ImportAI,
+    ExportINI,
     ExportCSV,
     ExportAI,
 )
