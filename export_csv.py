@@ -1,24 +1,3 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
-
-# <pep8 compliant>
-
-
 """
 This script exports a AssettoCorsa CSV file.
 
@@ -49,7 +28,7 @@ def ConvertToCurve(obj):
     bpy.context.view_layer.objects.active = act
 
 
-def save(context, filepath, scaling, shiftCount, reverse, conv2Curve2mesh):
+def save(context, filepath, scaling, shiftCount, reverse, conv2Curve2mesh, skipPoTColumn):
     # return export_csv.save(context, self.properties.filepath, self.scaling, self.shiftCount, self.reverse, self.conv2Curve2mesh)
     selected_obj = bpy.context.selected_objects.copy()
     if len(selected_obj)==1:
@@ -88,7 +67,7 @@ def save(context, filepath, scaling, shiftCount, reverse, conv2Curve2mesh):
                 for v in bm.vertices:
                     distTotal += distance(v.co, lastco)
                     lastco = v.co
-
+                print('spline length: ' + str(distTotal) )
                 lastco = lastOne
                 dist = 0.0
                 # print( str(distTotal) + ' - ' + str(len(bm.vertices)) + 'verts\n' )
@@ -97,10 +76,15 @@ def save(context, filepath, scaling, shiftCount, reverse, conv2Curve2mesh):
                     vco = bm.vertices[runIndex].co
                     dist += distance(vco, lastco)
                     lastco = vco
-                    file.write("{:.4f},{:.4f},{:.4f},{:.6f}\n".format(
-                                vco[0]*scaling, vco[2]*scaling, vco[1]*scaling,
-                                dist/distTotal )
-                        )
+                    if skipPoTColumn:
+                        file.write("{:.4f},{:.4f},{:.4f}\n".format(
+                                    vco[0]*scaling, vco[2]*scaling, vco[1]*scaling)
+                            )
+                    else:
+                        file.write("{:.4f},{:.4f},{:.4f},{:.6f}\n".format(
+                                    vco[0]*scaling, vco[2]*scaling, vco[1]*scaling,
+                                    dist/distTotal )
+                            )
                     if reverse:
                         runIndex -= 1
                         if runIndex<0:

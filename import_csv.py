@@ -1,24 +1,3 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
-
-# <pep8 compliant>
-
-
 """
 This script imports a AssettoCorsa CSV file to Blender.
 
@@ -27,7 +6,7 @@ Run this script from "File->Import" menu and then load the desired CSV file.
 """
 
 
-import bpy, bmesh, os, struct, csv, math
+import bpy, bmesh, os, struct, csv, math, configparser, codecs
 from mathutils import Vector
 from bpy_extras.object_utils import object_data_add
 
@@ -49,7 +28,7 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
 
     # insert stuff at origin
     # taken from, https://blenderartists.org/t/setting-origin-to-world-centre-using-blender-python/1174798
-    if bpy.app.version[1]<80:
+    if bpy.app.version[1]<80 and bpy.app.version[0]<3:
         bpy.ops.transform.translate(value=(0, 0, 1), constraint_orientation='GLOBAL')
         bpy.context.scene.cursor_location[0], \
         bpy.context.scene.cursor_location[1], \
@@ -58,6 +37,18 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
         bpy.ops.transform.translate(value=(0, 0, 1), orient_type='GLOBAL')
         bpy.context.scene.cursor.location = Vector((0.0, 0.0, 0.0))
         bpy.context.scene.cursor.rotation_euler = Vector((0.0, 0.0, 0.0))
+
+    s=''
+    with codecs.open(filepath, 'r', errors='ignore') as file:
+        s = file.read()
+    if 'POSITION=' in s and '[' in s and 'NAME=':
+        ini = configparser.ConfigParser(inline_comment_prefixes=';')
+        ini.optionxform=str # keep upper/lower case
+        ini.read(filepath)
+        # for sects in ini.sections():
+        #     if ini.has_option(sects,'NAME') and ini.has_option(sects, 'POSITION'):
+        #
+        return {'FINISHED'}
 
     skipped = 0
     mesh = 0

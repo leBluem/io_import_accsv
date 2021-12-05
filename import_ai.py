@@ -1,24 +1,3 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
-
-# <pep8 compliant>
-
-
 """
 This script imports AssettoCorsa fast_lane.ai/ideal_line.ai into Blender.
 
@@ -76,6 +55,8 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
             else:
                 z = data_detail[i][idx] * 100
         coords = ( float(x), -float(y), float(z)  )
+        if i % 1000 == 0:
+            print(str(i) + "/" + str(len(data_ideal)))
 
         if i==0:
             print('Import AC ai-line start-pos: ' + str(coords))
@@ -83,7 +64,7 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
             mesh = bpy.data.meshes.new( name=meshname )
             mesh.from_pydata( [Vector(coords)] , [], [] )
             mesh = object_data_add(bpy.context, mesh)
-            if bpy.app.version[1]>=80:
+            if bpy.app.version[1]>=80 and bpy.app.version[0]>=2:
                 meshname = mesh.name
             bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
             bpy.ops.object.mode_set(mode='EDIT')
@@ -92,16 +73,19 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
             mesh.verts.new(coords)
             mesh.verts.ensure_lookup_table()
             mesh.edges.new([mesh.verts[len(mesh.verts)-2],mesh.verts[len(mesh.verts)-1]])
-            bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
+            # bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
+            bmesh.update_edit_mesh(bpy.data.objects[meshname].data)
     # set last edge
     if not ignoreLastEdge:
         if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
             mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
     bpy.ops.object.mode_set(mode='OBJECT')
+    print('\ndone!')
     CenterOrigin(scaling)
 
 def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ignoreLastEdge):
     with open(filepath, "rb") as buffer:
+        print(os.path.basename(filepath))
         meshname       = os.path.basename(filepath)
         meshnameBL     = meshname + '_border_left'
         meshnameBR     = meshname + '_border_right'
@@ -109,7 +93,7 @@ def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ig
 
         # insert stuff at origin
         # taken from, https://blenderartists.org/t/setting-origin-to-world-centre-using-blender-python/1174798
-        if bpy.app.version[1]<80:
+        if bpy.app.version[1]<80 and bpy.app.version[0]<3:
             bpy.ops.transform.translate(value=(0, 0, 1), constraint_orientation='GLOBAL')
             bpy.context.scene.cursor_location[0], \
             bpy.context.scene.cursor_location[1], \
@@ -129,6 +113,9 @@ def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ig
         buffer.seek(0)
         # read header, detailCount is number of data points available
         header, detailCount, u1, u2 = struct.unpack("4i", buffer.read(4 * 4))
+        print(filepath)
+        print('len: ' + str(detailCount))
+
         # read ideal-line data
         for i in range(detailCount):       # 4 floats, one integer
             data_ideal.append(struct.unpack("4f i", buffer.read(4 * 5)))
@@ -137,6 +124,8 @@ def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ig
             data_detail.append(struct.unpack("18f", buffer.read(4 * 18)))
 
         # now comes more data, no info available for that
+
+        print('read!')
 
         #if createCameras:
         #    CreateCameras()

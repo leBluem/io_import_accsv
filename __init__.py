@@ -1,24 +1,7 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-# ##### END GPL LICENSE BLOCK #####
-# <pep8-80 compliant>
-
 bl_info = {
     "name": "Import-Export AC CSV or AI files",
     "author": "leBluem",
-    "version": (1, 5, 0),
+    "version": (1, 6, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV and AI files",
@@ -111,7 +94,7 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
 
     def draw(self, context):
         layout = self.layout
-        if bpy.app.version[1]>=80:
+        if bpy.app.version[1]>=80 and bpy.app.version[0]<=3:
             layout.use_property_split = True
             layout.use_property_decorate = False  # No animation.
 
@@ -166,7 +149,7 @@ class ImportAI(bpy.types.Operator, ImportHelper):
         return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData, self.createCameras, self.maxDist, self.ignoreLastEdge)
     def draw(self, context):
         layout = self.layout
-        if bpy.app.version[1]>=80:
+        if bpy.app.version[1]>=80 and bpy.app.version[0]<3:
             layout.use_property_split = True
             layout.use_property_decorate = False  # No animation.
 
@@ -214,13 +197,18 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
         description = "sort by using curves, but at least 0 must be correct ",
         default=0,
         )
+    skipPoTColumn: BoolProperty(
+        name="skip PoT, save only x,y,z",
+        description = "for ie camera splines or just plain csv files",
+        default=0,
+        )
 
     def execute(self, context):
-        return export_csv.save(context, self.properties.filepath, self.scaling, self.shiftCount, self.reverse, self.conv2Curve2mesh)
+        return export_csv.save(context, self.properties.filepath, self.scaling, self.shiftCount, self.reverse, self.conv2Curve2mesh, self.skipPoTColumn)
 
     def draw(self, context):
         layout = self.layout
-        if bpy.app.version[1]>=80:
+        if bpy.app.version[1]>=80 and bpy.app.version[0]<3:
             layout.use_property_split = True
             layout.use_property_decorate = False  # No animation.
 
@@ -231,7 +219,7 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
         layout.prop(operator, "shiftCount")
         layout.prop(operator, "reverse")
         layout.prop(operator, "conv2Curve2mesh")
-
+        layout.prop(operator, "skipPoTColumn")
 
 class ExportAI(bpy.types.Operator, ExportHelper):
     """Save fast_lane.ai"""
@@ -284,7 +272,7 @@ class ExportAI(bpy.types.Operator, ExportHelper):
         return export_ai.save(context, self.properties.filepath, self.shiftCount, self.lineIDX)
     def draw(self, context):
         layout = self.layout
-        if bpy.app.version[1]>=80:
+        if bpy.app.version[1]>=80 and bpy.app.version[0]>=2:
             layout.use_property_split = True
             layout.use_property_decorate = False  # No animation.
         sfile = context.space_data
@@ -314,7 +302,7 @@ classes = (
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    if bpy.app.version[1]<80:
+    if bpy.app.version[1]<80 and bpy.app.version[0]<3:
         bpy.types.INFO_MT_file_import.append(menu_func_import)
         bpy.types.INFO_MT_file_export.append(menu_func_export)
     else:
@@ -326,7 +314,7 @@ def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
-    if bpy.app.version[1]<80:
+    if bpy.app.version[1]<80 and bpy.app.version[0]<3:
         bpy.types.INFO_MT_file_import.remove(menu_func_import)
         bpy.types.INFO_MT_file_export.remove(menu_func_export)
     else:
