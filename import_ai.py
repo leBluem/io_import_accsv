@@ -64,8 +64,7 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
             mesh = bpy.data.meshes.new( name=meshname )
             mesh.from_pydata( [Vector(coords)] , [], [] )
             mesh = object_data_add(bpy.context, mesh)
-            if bpy.app.version[1]>=80 and bpy.app.version[0]>=2:
-                meshname = mesh.name
+            meshname = mesh.name # update name, may have .001 or something
             bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
             bpy.ops.object.mode_set(mode='EDIT')
         else: # add to existing mesh
@@ -73,7 +72,6 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
             mesh.verts.new(coords)
             mesh.verts.ensure_lookup_table()
             mesh.edges.new([mesh.verts[len(mesh.verts)-2],mesh.verts[len(mesh.verts)-1]])
-            # bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
             bmesh.update_edit_mesh(bpy.data.objects[meshname].data)
     # set last edge
     if not ignoreLastEdge:

@@ -37,3 +37,4 @@
  - v1.4 re-added now missing Conver2Curve and back for CSV-export
  - v1.5 fixed last point on CSV export, added option to skip connection from last2first vertex (for a2b tracks)
  - v1.6 fixed stupid version check preventing it to work on Blender 3.0; added option for exporting to CSV to skip PoT value; added importing/exporting from/to camera.ini files (plain axis empties, camera.inis must exist for export)
+ - v1.7 fixed errors when importing same named stuff more than once

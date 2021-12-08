@@ -48,8 +48,7 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
             mesh = bpy.data.meshes.new( name=meshname )
             mesh.from_pydata( [Vector(coords)], [], [] )
             mesh = object_data_add(bpy.context, mesh)
-            if bpy.app.version[1]>=80 and bpy.app.version[0]>=2:
-                meshname = mesh.name
+            meshname = mesh.name # update name, may have .001 or something
             bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
             bpy.ops.object.mode_set(mode='EDIT')
             vertC = 1

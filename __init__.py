@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Import-Export AC CSV/INI/AI files",
     "author": "leBluem",
-    "version": (1, 6, 0),
+    "version": (1, 7, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV/AI or cameras.ini files",
@@ -82,13 +82,8 @@ class ImportINI(bpy.types.Operator, ImportHelper):
 
     def draw(self, context):
         layout = self.layout
-        if bpy.app.version[1]>=80 and bpy.app.version[0]<=3:
-            layout.use_property_split = True
-            layout.use_property_decorate = False  # No animation.
-
         sfile = context.space_data
         operator = sfile.active_operator
-
         layout.prop(operator, "scaling")
 
 class ImportCSV(bpy.types.Operator, ImportHelper):
@@ -128,13 +123,8 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
 
     def draw(self, context):
         layout = self.layout
-        if bpy.app.version[1]>=80 and bpy.app.version[0]<=3:
-            layout.use_property_split = True
-            layout.use_property_decorate = False  # No animation.
-
         sfile = context.space_data
         operator = sfile.active_operator
-
         layout.prop(operator, "scaling")
         layout.prop(operator, "doDoubleCheck")
         # layout.prop(operator, "createFaces")
@@ -180,15 +170,11 @@ class ImportAI(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData, self.createCameras, self.maxDist, self.ignoreLastEdge)
+
     def draw(self, context):
         layout = self.layout
-        if bpy.app.version[1]>=80 and bpy.app.version[0]<3:
-            layout.use_property_split = True
-            layout.use_property_decorate = False  # No animation.
-
         sfile = context.space_data
         operator = sfile.active_operator
-
         layout.prop(operator, "scaling")
         layout.prop(operator, "importExtraData")
         ### not finished atm
@@ -219,6 +205,7 @@ class ExportINI(bpy.types.Operator, ExportHelper):
         description = "save in reverse order",
         default=0,
         )
+
     def execute(self, context):
         return export_ini.save(context, self.properties.filepath, self.scaling, self.reverse)
 
