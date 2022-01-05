@@ -9,7 +9,7 @@
 
 ***Uses code from***
  - Author Tsuka1427 on RaceDepartment, thank you very much!
- - from this AC app https://www.racedepartment.com/threads/3d-map.148324/page-2#post-3245672
+ - from this AC app https://www.racedepartment.com/threads/3d-map.148324/
 
 ***How to install***
  - goto Blender -> Edit -> preferences -> addons
