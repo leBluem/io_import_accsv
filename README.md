@@ -9,7 +9,7 @@
 
 ***Uses code from***
  - Author Tsuka1427 on RaceDepartment, thank you very much!
- - from this AC app https://www.racedepartment.com/threads/3d-map.148324/
+ - from this AC app https://www.racedepartment.com/threads/3d-map.148324/page-2#post-3245672
 
 ***How to install***
  - goto Blender -> Edit -> preferences -> addons
@@ -38,3 +38,4 @@
  - v1.5 fixed last point on CSV export, added option to skip connection from last2first vertex (for a2b tracks)
  - v1.6 fixed stupid version check preventing it to work on Blender 3.0; added option for exporting to CSV to skip PoT value; added importing/exporting from/to camera.ini files (plain axis empties, camera.inis must exist for export)
  - v1.7 fixed errors when importing same named stuff more than once
+ - v1.8 fixed errors on CSV import

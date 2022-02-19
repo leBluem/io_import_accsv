@@ -66,7 +66,7 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
                 mesh.verts.new( coords )
                 mesh.verts.ensure_lookup_table()
                 mesh.edges.new([mesh.verts[len(mesh.verts)-2],mesh.verts[len(mesh.verts)-1]])
-                bmesh.update_edit_mesh(bpy.data.objects[meshname].data, True)
+                bmesh.update_edit_mesh(bpy.data.objects[meshname].data)
 
     # set last edge
     if not ignoreLastEdge:
