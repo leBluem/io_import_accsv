@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Import-Export AC CSV/INI/AI files",
     "author": "leBluem",
-    "version": (1, 8, 0),
+    "version": (1, 9, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV/AI or cameras.ini files",
@@ -76,15 +76,21 @@ class ImportINI(bpy.types.Operator, ImportHelper):
         min=0.01, max=100.0,
         default=1.0,
         )
+    asMesh : BoolProperty(
+        name="mesh/verts (not empties)",
+        description = "import as Mesh with connected verts rather than as several empties",
+        default=0,
+        )
 
     def execute(self, context):
-        return import_ini.load(context, self.properties.filepath, self.scaling)
+        return import_ini.load(context, self.properties.filepath, self.scaling, self.asMesh)
 
     def draw(self, context):
         layout = self.layout
         sfile = context.space_data
         operator = sfile.active_operator
         layout.prop(operator, "scaling")
+        layout.prop(operator, "asMesh")
 
 class ImportCSV(bpy.types.Operator, ImportHelper):
     """Load a CSV File"""
@@ -93,7 +99,7 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
     bl_options = {'PRESET', 'UNDO'}
     filename_ext = ".csv"
     filter_glob = StringProperty(
-        default="*.csv;*.ini",
+        default="*.csv;*.ini;*.txt",
         options={'HIDDEN'},
     )
     scaling : FloatProperty(
@@ -127,8 +133,8 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
         operator = sfile.active_operator
         layout.prop(operator, "scaling")
         layout.prop(operator, "doDoubleCheck")
-        # layout.prop(operator, "createFaces")
         layout.prop(operator, "ignoreLastEdge")
+        # layout.prop(operator, "createFaces")
 
 class ImportAI(bpy.types.Operator, ImportHelper):
     """Load fast_lane.ai"""

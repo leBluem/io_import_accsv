@@ -22,6 +22,9 @@ def distance(point1, point2) -> float:
 
 
 def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge):
+
+    print('import: ' + filepath)
+
     meshname=os.path.basename(filepath)
     csvfile = open(filepath)
     inFile = csv.reader(csvfile, delimiter=',', quotechar='"')
@@ -75,7 +78,8 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
 
     print('Imported ' + str(len(mesh.verts)) + ' points, points skipped: ' + str(skipped) )
     bpy.ops.object.mode_set(mode='OBJECT')
-    CenterOrigin(scaling)
+    # CenterOrigin(scaling)
+
     return {'FINISHED'}
 
 # obj.data.vertices[0].select = True

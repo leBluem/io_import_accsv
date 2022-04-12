@@ -14,9 +14,11 @@ def CenterOrigin(scaling):
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
     bpy.ops.transform.resize(value=(scaling, scaling, scaling))
 
+
 def distance(point1, point2) -> float:
     """Calculate distance between two points in 3D."""
     return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
+
 
 def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ignoreLastEdge):
     # create vertices from ai line data
@@ -78,12 +80,15 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
         if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
             mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
     bpy.ops.object.mode_set(mode='OBJECT')
-    print('\ndone!')
+    print('done!')
+    # bpy.ops.view3d.snap_cursor_to_center()
     CenterOrigin(scaling)
+
 
 def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ignoreLastEdge):
     with open(filepath, "rb") as buffer:
-        print(os.path.basename(filepath))
+        print('import: ' + filepath)
+        # print(os.path.basename(filepath))
         meshname       = os.path.basename(filepath)
         meshnameBL     = meshname + '_border_left'
         meshnameBR     = meshname + '_border_right'
@@ -104,8 +109,6 @@ def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ig
         # temporary arrays
         data_ideal = []
         data_detail = []
-        mesh = 0
-        # bpy.ops.view3d.snap_cursor_to_center()
 
         # should be at start, but do it anyway
         buffer.seek(0)
@@ -123,7 +126,7 @@ def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ig
 
         # now comes more data, no info available for that
 
-        print('read!')
+        print('creating meshes...')
 
         #if createCameras:
         #    CreateCameras()
@@ -131,8 +134,8 @@ def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ig
         # build mesh from ai line
         CreateMeshFromDataPoints(meshnameBL , 6, data_ideal, data_detail, scaling, ignoreLastEdge)
         CreateMeshFromDataPoints(meshnameBR , 7, data_ideal, data_detail, scaling, ignoreLastEdge)
-        print(str(importExtraData))
         if importExtraData:
+            print('creating extra lines...')
             CreateMeshFromDataPoints(meshnameDetail , 0, data_ideal, data_detail, scaling, ignoreLastEdge)
             CreateMeshFromDataPoints(meshnameDetail , 1, data_ideal, data_detail, scaling, ignoreLastEdge)
             CreateMeshFromDataPoints(meshnameDetail , 2, data_ideal, data_detail, scaling, ignoreLastEdge)
@@ -150,5 +153,5 @@ def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ig
             CreateMeshFromDataPoints(meshnameDetail ,16, data_ideal, data_detail, scaling, ignoreLastEdge)
             CreateMeshFromDataPoints(meshnameDetail ,17, data_ideal, data_detail, scaling, ignoreLastEdge)
         CreateMeshFromDataPoints(meshname       ,-1, data_ideal, data_detail, scaling, ignoreLastEdge)
-
+    print('done.')
     return {'FINISHED'}

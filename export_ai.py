@@ -15,6 +15,8 @@ def distance(point1, point2) -> float:
 
 
 def save(context, filepath, shiftCount, lineIDX):
+    print('export: ' + filepath)
+
     selected_obj = bpy.context.selected_objects.copy()
     if len(selected_obj)!=1:
         return {'Select only one object!'}

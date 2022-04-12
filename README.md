@@ -39,3 +39,4 @@
  - v1.6 fixed stupid version check preventing it to work on Blender 3.0; added option for exporting to CSV to skip PoT value; added importing/exporting from/to camera.ini files (plain axis empties, camera.inis must exist for export)
  - v1.7 fixed errors when importing same named stuff more than once
  - v1.8 fixed errors on CSV import
+ - v1.9 fixed INI import/export (camera and overlay.ini), added option to import as mesh instead of empties; ....001/...02 will be recognized/ignored on export
