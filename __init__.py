@@ -1,11 +1,10 @@
 bl_info = {
     "name": "Import-Export AC CSV/INI/AI files",
     "author": "leBluem",
-    "version": (1, 9, 0),
-    "blender": (2, 80, 0),
+    "version": (1,9,1),
+    "blender": (2,80,0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV/AI or cameras.ini files",
-    "warning": "requires Blender v2.8 or above",
     "category": "Import-Export",
     "doc_url": "https://github.com/leBluem/io_import_accsv",
 }
@@ -89,6 +88,7 @@ class ImportINI(bpy.types.Operator, ImportHelper):
         layout = self.layout
         sfile = context.space_data
         operator = sfile.active_operator
+
         layout.prop(operator, "scaling")
         layout.prop(operator, "asMesh")
 
@@ -131,6 +131,7 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
         layout = self.layout
         sfile = context.space_data
         operator = sfile.active_operator
+
         layout.prop(operator, "scaling")
         layout.prop(operator, "doDoubleCheck")
         layout.prop(operator, "ignoreLastEdge")
@@ -181,6 +182,7 @@ class ImportAI(bpy.types.Operator, ImportHelper):
         layout = self.layout
         sfile = context.space_data
         operator = sfile.active_operator
+
         layout.prop(operator, "scaling")
         layout.prop(operator, "importExtraData")
         ### not finished atm
@@ -217,10 +219,6 @@ class ExportINI(bpy.types.Operator, ExportHelper):
 
     def draw(self, context):
         layout = self.layout
-        if bpy.app.version[1]>=80 and bpy.app.version[0]<3:
-            layout.use_property_split = True
-            layout.use_property_decorate = False  # No animation.
-
         sfile = context.space_data
         operator = sfile.active_operator
 
@@ -270,10 +268,6 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
 
     def draw(self, context):
         layout = self.layout
-        if bpy.app.version[1]>=80 and bpy.app.version[0]<3:
-            layout.use_property_split = True
-            layout.use_property_decorate = False  # No animation.
-
         sfile = context.space_data
         operator = sfile.active_operator
 
@@ -334,9 +328,6 @@ class ExportAI(bpy.types.Operator, ExportHelper):
         return export_ai.save(context, self.properties.filepath, self.shiftCount, self.lineIDX)
     def draw(self, context):
         layout = self.layout
-        if bpy.app.version[1]>=80 and bpy.app.version[0]>=2:
-            layout.use_property_split = True
-            layout.use_property_decorate = False  # No animation.
         sfile = context.space_data
         operator = sfile.active_operator
         layout.prop(operator, "scaling")
@@ -368,25 +359,17 @@ classes = (
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    if bpy.app.version[1]<80 and bpy.app.version[0]<3:
-        bpy.types.INFO_MT_file_import.append(menu_func_import)
-        bpy.types.INFO_MT_file_export.append(menu_func_export)
-    else:
-        bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
-        bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
-
-    if bpy.app.version[1]<80 and bpy.app.version[0]<3:
-        bpy.types.INFO_MT_file_import.remove(menu_func_import)
-        bpy.types.INFO_MT_file_export.remove(menu_func_export)
-    else:
-        bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
-        bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
 
 if __name__ == "__main__":
     register()
+

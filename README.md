@@ -40,3 +40,10 @@
  - v1.7 fixed errors when importing same named stuff more than once
  - v1.8 fixed errors on CSV import
  - v1.9 fixed INI import/export (camera and overlay.ini), added option to import as mesh instead of empties; ....001/...02 will be recognized/ignored on export
+ - v1.9.1 fixed not installing correctly
+
+If you have problems, remove those folders and install again:
+c:\Blender\3.1\scripts\addons\io_import_accsv\
+c:\Users\yourUser\AppData\Roaming\Blender Foundation\Blender\3.1\scripts\addons\io_import_accsv\
+
+(replace 3.1 with your version of course)
