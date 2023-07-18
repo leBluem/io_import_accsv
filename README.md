@@ -42,7 +42,9 @@
  - v1.9 fixed INI import/export (camera and overlay.ini), added option to import as mesh instead of empties; ....001/...02 will be recognized/ignored on export
  - v1.9.1 fixed not installing correctly
  - v2.0
- -- added AI line export into new/empty ai-line, you either load it into "ksEditor" or just run AC with "side_l/r.csv" in place too
+ -- added AI line export into new/empty ai-line, afterwards you MUST
+ ---either load it into "ksEditor" and save from there again or
+ ---use shift on AC start with "side_l/r.csv" in place
  -- fixed incrasing distance not being saved in ai line
  -- minor fixes when exporting to cameras.ini with names like CAMERA_0.001
 
