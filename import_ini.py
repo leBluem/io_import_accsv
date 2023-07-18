@@ -63,7 +63,7 @@ def load(context, filepath, scaling, asMesh):
                 if coords!=['-999999.0','0.0','0.0']:
                     bpy.ops.object.empty_add(type='PLAIN_AXES', align='WORLD', location=(float(coords[0])*scaling, -float(coords[2])*scaling, float(coords[1])*scaling ), scale=(scaling*5, scaling*5, scaling*5))
                     bpy.context.object.name = sects
-                c+=1
+                    c+=1
 
     if asMesh:
         if mesh!=0:

@@ -41,9 +41,13 @@
  - v1.8 fixed errors on CSV import
  - v1.9 fixed INI import/export (camera and overlay.ini), added option to import as mesh instead of empties; ....001/...02 will be recognized/ignored on export
  - v1.9.1 fixed not installing correctly
+ - v2.0
+ -- added AI line export into new/empty ai-line, you either load it into "ksEditor" or just run AC with "side_l/r.csv" in place too
+ -- fixed incrasing distance not being saved in ai line
+ -- minor fixes when exporting to cameras.ini with names like CAMERA_0.001
 
 If you have problems, remove those folders and install again:
 c:\Blender\3.1\scripts\addons\io_import_accsv\
 c:\Users\yourUser\AppData\Roaming\Blender Foundation\Blender\3.1\scripts\addons\io_import_accsv\
 
-(replace 3.1 with your version of course)
+(replace 3.1with your version of course)
