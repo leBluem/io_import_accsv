@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Import-Export AC CSV/INI/AI files",
     "author": "leBluem",
-    "version": (2,0,0),
+    "version": (2,1,0),
     "blender": (2,80,0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV/AI or cameras.ini files",
@@ -294,18 +294,13 @@ class ExportAI(bpy.types.Operator, ExportHelper):
         description='',
         )
     shiftCount : IntProperty(
-        name="shiftCount",
+        name="ShiftCount",
         min=-999999, max=999999,
         description='not a good idea for ai-line, ai-line will probably be broken after this',
         default=0,
         )
-    reverse : BoolProperty(
-        name="reverse (applied to mesh!)",
-        description = "save in reverse order",
-        default=0,
-        )
     lineIDX : EnumProperty(
-        name='ailine IDX',
+        name='AI line IDX',
         description='ID in ai line, none for AI-line itself',
         items=[('-1',  "none",  "none"),
                 ('0',  "0",  "0"),
@@ -329,16 +324,17 @@ class ExportAI(bpy.types.Operator, ExportHelper):
         default='-1'
         )
 
+    def execute(self, context):
+        return export_ai.save(context, self.properties.filepath, self.shiftCount, self.lineIDX, self.scaling)
+                    #def save(context, filepath, scaling, shiftCount, lineIDX):
+
     def draw(self, context):
         layout = self.layout
         sfile = context.space_data
         operator = sfile.active_operator
         layout.prop(operator, "scaling")
-        layout.prop(operator, "reverse")
+        layout.prop(operator, "shiftCount")
         layout.prop(operator, "lineIDX")
-
-    def execute(self, context):
-        return export_ai.save(context, self.properties.filepath, self.shiftCount, self.lineIDX, self.reverse)
 
 
 def menu_func_import(self, context):

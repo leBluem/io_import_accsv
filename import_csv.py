@@ -27,7 +27,7 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
 
     meshname=os.path.basename(filepath)
     csvfile = open(filepath)
-    inFile = csv.reader(csvfile, delimiter=',', quotechar='"', strict=False)
+    inFile = csv.reader(csvfile, delimiter=',', quotechar='"')
 
     # insert stuff at origin
     # taken from, https://blenderartists.org/t/setting-origin-to-world-centre-using-blender-python/1174798
@@ -43,58 +43,33 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
 
     skipped = 0
     mesh = 0
-    count = 0
-    cEdge = 0
-    #colcount = len(next(inFile))
+    vertC = 0
     for row in inFile:
-        #if colcount > 2:
-        if str(row)!='':
-            #  column order (1: x, 2: z, 3: y)
-            coords = (float(row[0]),float(row[2]),float(row[1]))
-            if mesh==0: # create new mesh
-                mesh = bpy.data.meshes.new( name=meshname+str(count) )
-                mesh.from_pydata( [Vector(coords)], [], [] )
-                mesh = object_data_add(bpy.context, mesh)
-                meshname = mesh.name # update name, may have .001 or something
-                bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
-                bpy.ops.object.mode_set(mode='EDIT')
-                verts = 1
-                vertsF = 1
-            else:
-                # add to existing
-                mesh = bmesh.from_edit_mesh(bpy.data.objects[meshname].data)
-                skip = False
-                if doDoubleCheck:
-                    for ms in mesh.verts:
-                        #if (ms.co[0]-0.01 >= coords[0] and ms.co[0]+0.01 <= coords[0]) and  (ms.co[1]-0.01 >= coords[2] and ms.co[1]+0.01 <= coords[2]) and  (ms.co[2]-0.01 >= coords[1] and ms.co[2]+0.01 <= coords[1]):
-                        if distance(ms.co, coords)<0.1:
-                            skipped += 1
-                            skip = True
-                            break
-                if not skip:
-                    mesh.verts.new( coords )
-                    mesh.verts.ensure_lookup_table()
-                    L = len(mesh.verts)
-                    mesh.edges.new([mesh.verts[L-2],mesh.verts[L-1]])
-                    cEdge += 1
-                    if cEdge == 3:
-                        cEdge = 0
-                        Ledge = len(mesh.edges)
-                        mesh.faces.new( (mesh.verts[L-3],mesh.verts[L-2],mesh.verts[L-1]) )
-                    bmesh.update_edit_mesh(bpy.data.objects[meshname].data)
-
-                #vertsF =+ 1
-                #if vertF == 3:
-                #    vertF = 0
-                #    mesh.faces.extend()
-
-        elif mesh!=0:
-            if mesh.verts[0] and mesh.verts[len(mesh.verts)-1]:
-                mesh.edges.new( [ mesh.verts[0], mesh.verts[len(mesh.verts)-1] ] )
-            bpy.ops.object.mode_set(mode='OBJECT')
-            print(meshname)
-            mesh = 0
-            count += 1
+        #  column order (1: x, 2: z, 3: y)
+        coords = (float(row[0]),float(row[2]),float(row[1]))
+        if mesh==0:
+            mesh = bpy.data.meshes.new( name=meshname )
+            mesh.from_pydata( [Vector(coords)], [], [] )
+            mesh = object_data_add(bpy.context, mesh)
+            meshname = mesh.name # update name, may have .001 or something
+            bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
+            bpy.ops.object.mode_set(mode='EDIT')
+            vertC = 1
+        else:
+            mesh = bmesh.from_edit_mesh(bpy.data.objects[meshname].data)
+            skip = False
+            if doDoubleCheck:
+                for ms in mesh.verts:
+                    #if (ms.co[0]-0.01 >= coords[0] and ms.co[0]+0.01 <= coords[0]) and  (ms.co[1]-0.01 >= coords[2] and ms.co[1]+0.01 <= coords[2]) and  (ms.co[2]-0.01 >= coords[1] and ms.co[2]+0.01 <= coords[1]):
+                    if distance(ms.co, coords)<0.1:
+                        skipped += 1
+                        skip = True
+                        break
+            if not skip:
+                mesh.verts.new( coords )
+                mesh.verts.ensure_lookup_table()
+                mesh.edges.new([mesh.verts[len(mesh.verts)-2],mesh.verts[len(mesh.verts)-1]])
+                bmesh.update_edit_mesh(bpy.data.objects[meshname].data)
 
     # set last edge
     if not ignoreLastEdge:
@@ -103,7 +78,7 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
 
     print('Imported ' + str(len(mesh.verts)) + ' points, points skipped: ' + str(skipped) )
     bpy.ops.object.mode_set(mode='OBJECT')
-    CenterOrigin(scaling)
+    # CenterOrigin(scaling)
 
     return {'FINISHED'}
 

@@ -16,8 +16,7 @@ def distance(point1, point2) -> float:
     return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
 
 
-def save(context, filepath, shiftCount, lineIDX, revAI):
-
+def save(context, filepath, shiftCount, lineIDX, scaling):
     selected_obj = bpy.context.selected_objects.copy()
     if len(selected_obj)!=1:
         print('Select only one object!')
@@ -64,25 +63,14 @@ def save(context, filepath, shiftCount, lineIDX, revAI):
             print('... overwriting file ...')
 
     current_mode = bpy.context.object.mode
-    if revAI:
-        if current_mode != 'EDIT':
-            bpy.ops.object.mode_set(mode = 'EDIT')
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.sort_elements(type='REVERSE', elements={'VERT'})
+    if current_mode != 'OBJECT':
         bpy.ops.object.mode_set(mode = 'OBJECT')
-
-        data_ideal = data_ideal.reverse()
-        data_detail = data_detail.reverse()
-    else:
-        if current_mode != 'OBJECT':
-            bpy.ops.object.mode_set(mode = 'OBJECT')
 
 
     # check if ai line data count matches our vertices
     ### if len(bm.vertices) == detailCount:
     dist = 0.0
     if len(bm.vertices) != detailCount:
-
         if detailCount>0:
             print('Vertex count does not match!')
             print('  points ailine: ' + str(detailCount) )
@@ -115,11 +103,11 @@ def save(context, filepath, shiftCount, lineIDX, revAI):
 
             # 4 floats, 1 int * detailCount
             for i in range(detailCount):
-                x =  bm.vertices[runIndex].co[0]
-                y =  bm.vertices[runIndex].co[1]
-                z =  bm.vertices[runIndex].co[2]
+                x =  bm.vertices[runIndex].co[0] * scaling
+                y =  bm.vertices[runIndex].co[1] * scaling
+                z =  bm.vertices[runIndex].co[2] * scaling
                 if i>0:
-                    distTotal += distance(bm.vertices[runIndex].co, lastco)
+                    distTotal += distance(bm.vertices[runIndex].co, lastco) * scaling
                 else:
                     distTotal = 0
                 lastco = bm.vertices[runIndex].co
@@ -136,8 +124,8 @@ def save(context, filepath, shiftCount, lineIDX, revAI):
             if runIndex>=detailCount:
                 runIndex=0
 
-            distL=3
-            distR=3
+            distL=0.2
+            distR=0.2
 
             # 18 floats * detailCount
             for i in range(detailCount):
@@ -159,6 +147,7 @@ def save(context, filepath, shiftCount, lineIDX, revAI):
             runIndex = detailCount+shiftCount+1
             if runIndex>=detailCount:
                 runIndex=0
+            print('  1st index: ' + str(runIndex))
 
             lastOne = bm.vertices[len(bm.vertices)-1].co
             lastco = lastOne
@@ -175,25 +164,31 @@ def save(context, filepath, shiftCount, lineIDX, revAI):
             # 4 floats, 1 int * detailCount
             dist = 0.0
             for i in range(detailCount):
+                if i < 10 or i > detailCount-10:
+                    print(str(x) + ", " + str(y) + ", "+ str(z) + "  --  " + str(dist) )
 
                 if int(lineIDX)!=-1:
                     # if lineIDX just read current values from orig ai-line
                     x, y, z, dist, id = data_ideal[i]
+                    buffer.write( struct.pack("4f i", x, y, z, dist, data_ideal[runIndex][4] ) )
                 else:
-                    x =  bm.vertices[runIndex].co[0]
-                    y =  bm.vertices[runIndex].co[2]
-                    z = -bm.vertices[runIndex].co[1]
+                    # coords = ( float(x), -float(y), float(z)  )
+                    x =  bm.vertices[runIndex].co[0] * scaling
+                    y =  bm.vertices[runIndex].co[1] * scaling
+                    z =  bm.vertices[runIndex].co[2] * scaling
+                    buffer.write( struct.pack("4f i", x, z, -y, dist, data_ideal[runIndex][4] ) )
                     dist += distance((x,y,z), lastco)
                     lastco = (x,y,z)
 
-                buffer.write( struct.pack("4f i", x, y, z, dist, data_ideal[runIndex][4] ) )
                 runIndex += 1
                 if runIndex>=detailCount:
                     runIndex=0
 
+
             runIndex = detailCount+shiftCount+1
             if runIndex>=detailCount:
                 runIndex=0
+            print('  1st index: ' + str(runIndex))
 
             # 18 floats * detailCount
             for i in range(detailCount):
@@ -219,8 +214,7 @@ def save(context, filepath, shiftCount, lineIDX, revAI):
                     runIndex=0
 
             # write rest of data unchanged
-            if not revAI:
-                buffer.write(data_rest)
+            buffer.write(data_rest)
 
     bpy.ops.object.mode_set ( mode = current_mode )
 
@@ -229,5 +223,5 @@ def save(context, filepath, shiftCount, lineIDX, revAI):
 
 
 ### use live in blender-script-editor
-### filepath='p:/Steam/steamapps/common/assettocorsa/apps/python/CamInfo/fast_lane2.ai'
-### save(bpy.context, filepath, 0, 0, False)
+# filepath='p:/Steam/steamapps/common/assettocorsa/apps/python/CamInfo/fast_lane2.ai'
+# save(bpy.context, filepath, 0, 0, False)

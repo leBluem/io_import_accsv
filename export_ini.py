@@ -42,9 +42,10 @@ def save(context, filepath, scaling, reverse):
                 ss=ss.replace(')>','')
                 ss=ss.replace(' ','')
                 sss = ss.split(',')
-                pos = o.name.find('.0')
-                if pos==-1:
+                pos = o.name.find('.0')-1
+                if pos==-2:
                     pos=len(o.name)
+                # sect = str(o.name).replace('.0','')
                 sect = o.name[:pos]
                 sCoords = str(round( float(sss[0]) * scaling, 6) ) + ', ' \
                         + str(round( float(sss[2]) * scaling, 6) ) + ', ' \
