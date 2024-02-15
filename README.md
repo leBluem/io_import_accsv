@@ -17,6 +17,11 @@
  - you should find it now in the Addon-list as
    "Import-Export: Import AC CSV or AI files"
 
+If you have problems, remove those folders and install again:
+c:\Blender\3.1\scripts\addons\io_import_accsv\
+c:\Users\yourUser\AppData\Roaming\Blender Foundation\Blender\3.1\scripts\addons\io_import_accsv\
+(replace 3.1 with your version of course)
+
 ***How to use***
  - new items in "File -> Import/Export" menu
 
@@ -48,9 +53,3 @@
  --- either load it into "ksEditor" and save from there again or
  --- use shift on AC start with "side_l/r.csv" in place
  - v2.1.0 fixed AI-line export ignoring scaling
-
-If you have problems, remove those folders and install again:
-c:\Blender\3.1\scripts\addons\io_import_accsv\
-c:\Users\yourUser\AppData\Roaming\Blender Foundation\Blender\3.1\scripts\addons\io_import_accsv\
-
-(replace 3.1 with your version of course)
