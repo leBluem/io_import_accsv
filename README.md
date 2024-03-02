@@ -1,4 +1,4 @@
-Note: don't download via the green button or the "source.zip", or the addon might not install correctly in Blender!
+Note: don't download via the green button or the "source.zip", or the addon might not install correctly in Blender, dl from releases instead!
 
 # Blender Addon to import Assetto Corsa CSV/AI files
  - screenshots: https://www.racedepartment.com/downloads/blender-addon-import-export-csv-and-ai-files.35230/
