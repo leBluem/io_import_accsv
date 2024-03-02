@@ -164,8 +164,8 @@ def save(context, filepath, shiftCount, lineIDX, scaling):
             # 4 floats, 1 int * detailCount
             dist = 0.0
             for i in range(detailCount):
-                if i < 10 or i > detailCount-10:
-                    print(str(x) + ", " + str(y) + ", "+ str(z) + "  --  " + str(dist) )
+                #if i < 10 or i > detailCount-10:
+                #    print(str(x) + ", " + str(y) + ", "+ str(z) + "  --  " + str(dist) )
 
                 if int(lineIDX)!=-1:
                     # if lineIDX just read current values from orig ai-line

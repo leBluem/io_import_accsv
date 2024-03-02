@@ -43,19 +43,24 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
                 yl = y
                 xl = x
                 if idx==6:
-                    _wallLeft = data_detail[i][6]
-                    x = x + math.cos((-direction + 90) * math.pi / 180) * _wallLeft
-                    y = y - math.sin((-direction + 90) * math.pi / 180) * _wallLeft
+                    if len(data_detail)>0:
+                        _wallLeft = data_detail[i][6]
+                        x = x + math.cos((-direction + 90) * math.pi / 180) * _wallLeft
+                        y = y - math.sin((-direction + 90) * math.pi / 180) * _wallLeft
                 else:
-                    _wallRight= data_detail[i][7]
-                    x = x + math.cos((-direction - 90) * math.pi / 180) * _wallRight
-                    y = y - math.sin((-direction - 90) * math.pi / 180) * _wallRight
+                    if len(data_detail)>0:
+                        _wallRight= data_detail[i][7]
+                        x = x + math.cos((-direction - 90) * math.pi / 180) * _wallRight
+                        y = y - math.sin((-direction - 90) * math.pi / 180) * _wallRight
             elif idx==5:
-                z = data_detail[i][idx] / 100.0
+                if len(data_detail)>0:
+                    z = data_detail[i][idx] / 100.0
             elif idx==1:
-                z = data_detail[i][idx]
+                if len(data_detail)>0:
+                    z = data_detail[i][idx]
             else:
-                z = data_detail[i][idx] * 100
+                if len(data_detail)>0:
+                    z = data_detail[i][idx] * 100
         coords = ( float(x), -float(y), float(z)  )
 
 
@@ -89,6 +94,7 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
 
 
 def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ignoreLastEdge):
+    filesize = os.stat(filepath).st_size
     with open(filepath, "rb") as buffer:
         print('import: ' + filepath)
         # print(os.path.basename(filepath))
@@ -121,12 +127,26 @@ def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ig
         print('len: ' + str(detailCount))
 
         # read ideal-line data
-        for i in range(detailCount):       # 4 floats, one integer
+        i=4*5
+        c=0
+        while i < filesize and c<detailCount:       # 4 floats, one integer
+        #for i in range(detailCount):       # 4 floats, one integer
             data_ideal.append(struct.unpack("4f i", buffer.read(4 * 5)))
-        # read more details data
-        for i in range(detailCount):        # 18 floats
-            data_detail.append(struct.unpack("18f", buffer.read(4 * 18)))
+            i+=4*5
+            c+=1
+        print('len dataideal: ' + str(len(data_ideal)))
 
+        # read more details data
+        i+=4*18
+        while i < filesize:        # 18 floats
+        #for i in range(detailCount):        # 18 floats
+            print(str(i))
+            data_detail.append(struct.unpack("18f", buffer.read(4 * 18)))
+            i+=4*18
+        print('len data_detail: ' + str(len(data_detail)))
+
+        if detailCount>len(data_detail):
+            detailCount=len(data_detail)
         # now comes more data, no info available for that
 
 
