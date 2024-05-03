@@ -242,5 +242,5 @@ def save(context, filepath, shiftCount, lineIDX, scaling):
 
 ### use live in blender-script-editor
 # filepath='p:/Steam/steamapps/common/assettocorsa/apps/python/CamInfo/fast_lane2.ai'
-filepath='p:/Steam/steamapps/common/assettocorsa/content/tracks/rt_bannochbrae/normal/ai/fast_lane.ai'
-save(bpy.context, filepath, 0, 0, False)
+# filepath='p:/Steam/steamapps/common/assettocorsa/content/tracks/rt_bannochbrae/normal/ai/fast_lane.ai'
+# save(bpy.context, filepath, 0, 0, False)
