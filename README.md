@@ -1,10 +1,11 @@
-Note: don't download via the green button or the "source.zip", or the addon might not install correctly in Blender, dl from releases instead!
+ - Note: when downloading from github, please dont download "source.zip", it wont install correctly in Blender !!!
+ - Please download "io_import_accsv.zip" instead!
 
 # Blender Addon to import Assetto Corsa CSV/AI files
  - screenshots: https://www.racedepartment.com/downloads/blender-addon-import-export-csv-and-ai-files.35230/
 
 ## Import/Export ai-line from "ideal_line/fast_lane/pit_lane.ai"
- - first record fast_lane.ai/pit_lane.ai with in-game AI app
+ - recorded with in-game AI app
 
 ## Import/Export "side_l/r/groove.csv"
  - can be generated with esotics AI-Line helper https://www.racedepartment.com/downloads/ai-line-helper.16016/
@@ -50,10 +51,16 @@ Note: don't download via the green button or the "source.zip", or the addon migh
  --- either load it into "ksEditor" and save from there again or
  --- use shift on AC start with "side_l/r.csv" in place
  - v2.1.0 fixed AI-line export ignoring scaling
- - v2.2.0 fix
+ - v2.2.0 fix for some export error
+ - v2.3.0
+ -- made importing AI lines more robust
+ -- added exporting borders directly into AI line:
+ --- select both border meshes
+ --- then ideal line mesh, so its active selected and yellow
+ --- then use export -> AC ai line, as usual, no idx selected
+
 
 If you have problems, remove those folders and install again:
 c:\Blender\3.1\scripts\addons\io_import_accsv\
 c:\Users\yourUser\AppData\Roaming\Blender Foundation\Blender\3.1\scripts\addons\io_import_accsv\
-
 (replace 3.1 with your version of course)

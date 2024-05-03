@@ -18,17 +18,32 @@ def distance(point1, point2) -> float:
 
 def save(context, filepath, shiftCount, lineIDX, scaling):
     selected_obj = bpy.context.selected_objects.copy()
-    if len(selected_obj)!=1:
+    if len(selected_obj)!=1 and len(selected_obj)!=3:
         print('Select only one object!')
-        return('CANCELED')
+        return {'CANCELED'}
 
     bm = bmesh.new()
     ob = context.active_object
     bm = bpy.context.object.data
     if len(bm.vertices) < 2:
         print('Not enough vertices!')
-        return('CANCELED')
+        return {'CANCELED'}
 
+    bmL = 0
+    bmR = 0
+    if len(selected_obj)==3:
+        for ob2 in selected_obj:
+            if 'left' in ob2.name.lower():
+                bmL = ob2.data
+            elif 'right' in ob2.name.lower():
+                bmR = ob2.data
+        if (bmL==0 or bmR==0):
+            print("Could not find 'left/right', select both borders and idealline last, so its selected!")
+            return {'CANCELED'}
+        if (len(bm.vertices)!=len(bmL.vertices) or
+            len(bm.vertices)!=len(bmR.vertices) ):
+            print("Length of ideal line/borders dont match!")
+            return {'CANCELED'}
 
     # temporary arrays
     data_ideal = []
@@ -111,21 +126,21 @@ def save(context, filepath, shiftCount, lineIDX, scaling):
                 else:
                     distTotal = 0
                 lastco = bm.vertices[runIndex].co
-                #if i == 0 :
-                #    x = 1.40129846432481e-45 * detailCount
                 buffer.write(struct.pack("4f i", x, z, -y, dist, i))
                 runIndex += 1
                 if runIndex>=detailCount:
                     runIndex=0
 
             print('  length: ' + str(round(distTotal,1)) +'m' )
-            # print('--- yikes ---')
             runIndex = detailCount+shiftCount+1
             if runIndex>=detailCount:
                 runIndex=0
 
             distL=0.2
             distR=0.2
+            if (bmL!=0 and bmR!=0):
+                distL = distance(bm.vertices[runIndex].co,bmL.vertices[runIndex].co)
+                distR = distance(bm.vertices[runIndex].co,bmR.vertices[runIndex].co)
 
             # 18 floats * detailCount
             for i in range(detailCount):
@@ -159,13 +174,10 @@ def save(context, filepath, shiftCount, lineIDX, scaling):
                 lastco = v.co
 
             print('  length: ' + str(round(distTotal, 1)) + 'm')
-            # print('runIndex ' + str(runIndex))
 
             # 4 floats, 1 int * detailCount
             dist = 0.0
             for i in range(detailCount):
-                #if i < 10 or i > detailCount-10:
-                #    print(str(x) + ", " + str(y) + ", "+ str(z) + "  --  " + str(dist) )
 
                 if int(lineIDX)!=-1:
                     # if lineIDX just read current values from orig ai-line
@@ -188,7 +200,6 @@ def save(context, filepath, shiftCount, lineIDX, scaling):
             runIndex = detailCount+shiftCount+1
             if runIndex>=detailCount:
                 runIndex=0
-            print('  1st index: ' + str(runIndex))
 
             # 18 floats * detailCount
             for i in range(detailCount):
@@ -201,11 +212,18 @@ def save(context, filepath, shiftCount, lineIDX, scaling):
                     else:
                         L2[int(lineIDX)] = bm.vertices[runIndex].co[2]
                     data_detail[runIndex] = tuple(L2)
+
+                distL = data_detail[runIndex][6]
+                distR = data_detail[runIndex][7]
+                if (bmL!=0 and bmR!=0):
+                    distL = distance(bm.vertices[runIndex].co,bmL.vertices[runIndex].co)
+                    distR = distance(bm.vertices[runIndex].co,bmR.vertices[runIndex].co)
+
                 data = struct.pack("18f",
-                          data_detail[runIndex][0], data_detail[runIndex][1], data_detail[runIndex][2],
-                          data_detail[runIndex][3], data_detail[runIndex][4], data_detail[runIndex][5],
-                          data_detail[runIndex][6], data_detail[runIndex][7], data_detail[runIndex][8],
-                          data_detail[runIndex][9], data_detail[runIndex][10], data_detail[runIndex][11],
+                          data_detail[runIndex][0] , data_detail[runIndex][1] , data_detail[runIndex][2],
+                          data_detail[runIndex][3] , data_detail[runIndex][4] , data_detail[runIndex][5],
+                          distL                    , distR                    , data_detail[runIndex][8],
+                          data_detail[runIndex][9] , data_detail[runIndex][10], data_detail[runIndex][11],
                           data_detail[runIndex][12], data_detail[runIndex][13], data_detail[runIndex][14],
                           data_detail[runIndex][15], data_detail[runIndex][16], data_detail[runIndex][17])
                 buffer.write(data)
@@ -224,4 +242,5 @@ def save(context, filepath, shiftCount, lineIDX, scaling):
 
 ### use live in blender-script-editor
 # filepath='p:/Steam/steamapps/common/assettocorsa/apps/python/CamInfo/fast_lane2.ai'
-# save(bpy.context, filepath, 0, 0, False)
+filepath='p:/Steam/steamapps/common/assettocorsa/content/tracks/rt_bannochbrae/normal/ai/fast_lane.ai'
+save(bpy.context, filepath, 0, 0, False)
