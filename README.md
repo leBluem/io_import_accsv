@@ -1,5 +1,6 @@
  - Note: when downloading from github, please dont download "source.zip", it wont install correctly in Blender !!!
  - Please download "io_import_accsv.zip" instead!
+ - direct download from Releases: https://github.com/leBluem/io_import_accsv/releases/download/2.3/io_import_accsv_v2.3.zip
 
 # Blender Addon to import Assetto Corsa CSV/AI files
  - screenshots: https://www.racedepartment.com/downloads/blender-addon-import-export-csv-and-ai-files.35230/
