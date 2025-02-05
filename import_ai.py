@@ -76,6 +76,7 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
     mesh.update(calc_edges=True)
     mesh = object_data_add(bpy.context, mesh)
     meshname = mesh.name # update name, may have .001 or something
+
     bpy.context.view_layer.objects.active = bpy.data.objects[meshname]
     meda = mesh.data
     for i in range(1,len(meda.vertices)):
@@ -186,22 +187,23 @@ def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ig
         # build mesh from ai line
         if importExtraData:
             print('creating extra lines...')
-            CreateMeshFromDataPoints(meshname + "__1_speed"            , 0, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__2_gas"              , 1, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__3_brake"            , 2, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__4_obsoleteLatG"     , 3, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__5_radius"           , 4, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__8_camber"           , 5, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__9_direction"        , 8, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__10_normalx"         , 9, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__11_normaly"         ,10, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__12_normalz"         ,11, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__13_length"          ,12, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__14_forwardVectorx"  ,13, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__15_forwardVectory"  ,14, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__16_forwardVectorz"  ,15, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__17_tag"             ,16, data_ideal, data_detail, scaling, ignoreLastEdge)
-            CreateMeshFromDataPoints(meshname + "__18_grade"           ,17, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__0_unknown"          , 0, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__1_speed"            , 1, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__2_gas"              , 2, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__3_brake"            , 3, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__4_obsoleteLatG"     , 4, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__5_radius"           , 5, data_ideal, data_detail, scaling, ignoreLastEdge)
+
+            CreateMeshFromDataPoints(meshname + "__8_camber"           , 8, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__9_direction"        , 9, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__10_normalx"         ,10, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__11_normaly"         ,11, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__12_normalz"         ,12, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__13_length"          ,13, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__14_forwardVectorx"  ,14, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__15_forwardVectory"  ,15, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__16_forwardVectorz"  ,16, data_ideal, data_detail, scaling, ignoreLastEdge)
+            CreateMeshFromDataPoints(meshname + "__17_tag"             ,17, data_ideal, data_detail, scaling, ignoreLastEdge)
 
         CreateMeshFromDataPoints(meshname + "_6_border_left"          , 6, data_ideal, data_detail, scaling, ignoreLastEdge)
         CreateMeshFromDataPoints(meshname + "_7_border_right"         , 7, data_ideal, data_detail, scaling, ignoreLastEdge)

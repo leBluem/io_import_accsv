@@ -28,6 +28,12 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
     meshname=os.path.basename(filepath)
     csvfile = open(filepath)
     inFile = csv.reader(csvfile, delimiter=',', quotechar='"')
+    # s = csvfile.read()
+    # #print(s)
+    # if ';' in s:
+    # else:
+    #     inFile = csv.reader(csvfile, delimiter=',', quotechar='"')
+
     # if not ',' in csvfile:
     #     inFile = csv.reader(csvfile, delimiter=' ', quotechar='"')
     # else:
@@ -48,19 +54,30 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
     mesh = 0
     vertC = 0
     points=[]
+    edges=[]
+    edgeidx=0
     for row in inFile:
         #  column order (1: x, 2: z, 3: y)
         # coords = (float(row[0]),float(row[2]),float(row[1]))
+        #print ( row[0] + "   " + row[2] + "   " + row[1] )
+        #print ( str(row))
         v = Vector((float(row[0]),float(row[2]),float(row[1])))
-        v[0]=v[0]/scaling
-        v[1]=v[1]/scaling
-        v[2]=-v[2]/scaling
+        v[0]=v[0]*scaling
+        v[1]=v[1]*scaling
+        v[2]=-v[2]*scaling
         points.append(v)
+        if edgeidx>=1:
+            edges.append([edgeidx-1,edgeidx])
+        edgeidx+=1
+
 
     mesh = 0
     meshname = os.path.basename(filepath)
     mesh = bpy.data.meshes.new(name=meshname)
-    mesh.from_pydata( points, [], [] )
+    mesh.from_pydata( points, edges, [] )
+    mesh.update()
+    mesh.validate(verbose=True)
+    mesh.update(calc_edges=True)
     mesh = object_data_add(bpy.context, mesh)
     meshname = mesh.name # update name, may have .001 or something
 
@@ -103,3 +120,5 @@ def load(context, filepath, scaling, doDoubleCheck, createFaces, ignoreLastEdge)
 
 # obj.data.vertices[0].select = True
 
+# filepath = "p:/Steam/steamapps/common/assettocorsa/content/tracks/rt_azure_coast/reverse/data/brkk.csv"
+# load(bpy.context, filepath, 0.01, False, False, False)

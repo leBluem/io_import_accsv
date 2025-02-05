@@ -16,34 +16,44 @@ def distance(point1, point2) -> float:
     return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
 
 
-def save(context, filepath, shiftCount, lineIDX, scaling):
+def save(context, filepath, shiftCount, lineIDX, scaling, reverse):
     selected_obj = bpy.context.selected_objects.copy()
-    if len(selected_obj)!=1 and len(selected_obj)!=3:
-        print('Select only one object!')
-        return {'CANCELED'}
+    # if len(selected_obj)!=1 and len(selected_obj)!=3:
+    #     print('Select only one object!')
+    #     return {'CANCELED'}
 
-    bm = bmesh.new()
-    ob = context.active_object
-    bm = bpy.context.object.data
-    if len(bm.vertices) < 2:
-        print('Not enough vertices!')
-        return {'CANCELED'}
-
+    bm = 0
     bmL = 0
     bmR = 0
-    if len(selected_obj)==3:
+    if len(selected_obj)>=3:
+        filepart = os.path.basename(filepath).lower()
         for ob2 in selected_obj:
-            if 'left' in ob2.name.lower():
+            if    'left' in ob2.name.lower() and ob2.name.lower().startswith(filepart):
                 bmL = ob2.data
-            elif 'right' in ob2.name.lower():
+            elif 'right' in ob2.name.lower() and ob2.name.lower().startswith(filepart):
                 bmR = ob2.data
-        if (bmL==0 or bmR==0):
-            print("Could not find 'left/right', select both borders and idealline last, so its selected!")
+            elif 'ideal' in ob2.name.lower() and ob2.name.lower().startswith(filepart):
+                bm = bmesh.new()
+                ob = context.active_object
+                bm = bpy.context.object.data
+
+        if (bmL==0 or bmR==0 or bm==0):
+            print("Could not find 'ideal/left/right', select both borders and idealline last, so its selected!")
             return {'CANCELED'}
         if (len(bm.vertices)!=len(bmL.vertices) or
             len(bm.vertices)!=len(bmR.vertices) ):
             print("Length of ideal line/borders dont match!")
             return {'CANCELED'}
+    elif len(selected_obj)==1:
+        bm = bmesh.new()
+        ob = context.active_object
+        bm = bpy.context.object.data
+    else:
+        return {'CANCELED'}
+
+    if len(bm.vertices) < 2:
+        print('Not enough vertices!')
+        return {'CANCELED'}
 
     # temporary arrays
     data_ideal = []
@@ -94,8 +104,8 @@ def save(context, filepath, shiftCount, lineIDX, scaling):
 
         print('... creating NEW basic AI line (load that in ksEditor) ...')
         print('file           : ' + filepath )
-        i=0
         if os.path.isfile(filepath):
+            i=0
             copyfilepath = filepath+'copy'+str(i)
             while os.path.isfile(copyfilepath):
                 i+=1

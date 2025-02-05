@@ -1,6 +1,5 @@
  - Note: when downloading from github, please dont download "source.zip", it wont install correctly in Blender !!!
  - Please download "io_import_accsv.zip" instead!
- - direct download from Releases: https://github.com/leBluem/io_import_accsv/releases/download/2.3/io_import_accsv_v2.3.zip
 
 # Blender Addon to import Assetto Corsa CSV/AI files
  - screenshots: https://www.racedepartment.com/downloads/blender-addon-import-export-csv-and-ai-files.35230/
@@ -59,7 +58,9 @@
  --- select both border meshes
  --- then ideal line mesh, so its active selected and yellow
  --- then use export -> AC ai line, as usual, no idx selected
-
+ - v2.4.0
+ --- fixed exporting to the wrong ID for AI line export other than default
+ --- added mass import for all modules, added mass export for exporting AI lines
 
 If you have problems, remove those folders and install again:
 c:\Blender\3.1\scripts\addons\io_import_accsv\

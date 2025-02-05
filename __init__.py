@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Import-Export AC CSV/INI/AI files",
     "author": "leBluem",
-    "version": (2,3,0),
+    "version": (2,0,0),
     "blender": (2,80,0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa CSV/AI or cameras.ini files",
@@ -49,6 +49,7 @@ from bpy.props import (
     IntProperty,
     BoolProperty,
     EnumProperty,
+    CollectionProperty,
 )
 from bpy_extras.io_utils import (
     ImportHelper,
@@ -66,10 +67,14 @@ class ImportINI(bpy.types.Operator, ImportHelper):
     bl_label = "Import INI"
     bl_options = {'PRESET', 'UNDO'}
     filename_ext = ".ini"
-    filter_glob = StringProperty(
+    filter_glob : StringProperty(
         default="*.ini",
         options={'HIDDEN'},
     )
+    files : CollectionProperty(
+            name="File Path",
+            type=bpy.types.OperatorFileListElement,
+            )
     scaling : FloatProperty(
         name="Scale",
         min=0.01, max=100.0,
@@ -82,7 +87,18 @@ class ImportINI(bpy.types.Operator, ImportHelper):
         )
 
     def execute(self, context):
-        return import_ini.load(context, self.properties.filepath, self.scaling, self.asMesh)
+        if self.files:
+            ret = {'CANCELLED'}
+            dirname = os.path.dirname(self.filepath)
+            for file in self.files:
+                path = os.path.join(dirname, file.name)
+                # print(path)
+                # return import_csv.load(context, path, self.scaling, self.doDoubleCheck, self.createFaces, self.ignoreLastEdge)
+                return import_ini.load(context, path, self.scaling, self.asMesh)
+                #if import_ai.load(context, path, self.scaling, self.importExtraData, False, 0, False) == {'FINISHED'}:
+            return ret
+        else:
+            return import_ini.load(context, self.properties.filepath, self.scaling, self.asMesh)
 
     def draw(self, context):
         layout = self.layout
@@ -98,10 +114,14 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
     bl_label = "Import CSV"
     bl_options = {'PRESET', 'UNDO'}
     filename_ext = ".csv"
-    filter_glob = StringProperty(
+    filter_glob : StringProperty(
         default="*.csv;*.ini;*.txt",
         options={'HIDDEN'},
     )
+    files : CollectionProperty(
+            name="File Path",
+            type=bpy.types.OperatorFileListElement,
+            )
     scaling : FloatProperty(
         name="Scale",
         min=0.01, max=100.0,
@@ -125,7 +145,17 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
         )
 
     def execute(self, context):
-        return import_csv.load(context, self.properties.filepath, self.scaling, self.doDoubleCheck, self.createFaces, self.ignoreLastEdge)
+        if self.files:
+            ret = {'CANCELLED'}
+            dirname = os.path.dirname(self.filepath)
+            for file in self.files:
+                path = os.path.join(dirname, file.name)
+                # print(path)
+                return import_csv.load(context, path, self.scaling, self.doDoubleCheck, self.createFaces, self.ignoreLastEdge)
+                #if import_ai.load(context, path, self.scaling, self.importExtraData, False, 0, False) == {'FINISHED'}:
+            return ret
+        else:
+            return import_csv.load(context, self.properties.filepath, self.scaling, self.doDoubleCheck, self.createFaces, self.ignoreLastEdge)
 
     def draw(self, context):
         layout = self.layout
@@ -137,46 +167,47 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
         layout.prop(operator, "ignoreLastEdge")
         # layout.prop(operator, "createFaces")
 
+
 class ImportAI(bpy.types.Operator, ImportHelper):
     """Load fast_lane.ai"""
     bl_idname = "import_ai.read"
     bl_label = "Import AI line"
     bl_options = {'PRESET', 'UNDO'}
     filename_ext = ".ai"
-    filter_glob = StringProperty(
+    filter_glob : StringProperty(
         default="*.ai",
         options={'HIDDEN'},
+    )
+    files : CollectionProperty(
+        name="File Path",
+        type=bpy.types.OperatorFileListElement,
     )
     scaling : FloatProperty(
         name="Scale",
         min=0.01, max=100.0,
         default=1.0,
-        )
+    )
     importExtraData : BoolProperty(
         name = "import all 18 ai line datasets",
         default = 0,
         description = "if you want to see how data looks; not recommended"
-        )
-    # unused atm
-    createCameras : BoolProperty(
-        name = "create cameras.ini from ai-line",
-        default = 0,
-        description = "meshes created for observation"
-        )
-    # unused atm
-    maxDist : FloatProperty(
-        name="Min Distance btw cameras",
-        min=1.0, max=1000.0,
-        default=350.0
-        )
-    ignoreLastEdge : BoolProperty(
-        name = "dont connect first/last verts",
-        default = 0,
-        description = "usefull when importing A2B stuff"
-        )
+    )
 
     def execute(self, context):
-        return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData, self.createCameras, self.maxDist, self.ignoreLastEdge)
+        if self.files:
+            ret = {'CANCELLED'}
+            dirname = os.path.dirname(self.filepath)
+            for file in self.files:
+                path = os.path.join(dirname, file.name)
+                # print(path)
+                return import_ai.load(context, path, self.scaling, self.importExtraData, False, 0, False)
+            return ret
+        else:
+            #return import_fbx.load(self, context, filepath=self.filepath, **keywords)
+            #print("B " + self.properties.filepath)
+            return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData, False, 0, False)
+
+        # return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData)
 
     def draw(self, context):
         layout = self.layout
@@ -188,7 +219,9 @@ class ImportAI(bpy.types.Operator, ImportHelper):
         ### not finished atm
         #layout.prop(operator, "createCameras")
         #layout.prop(operator, "maxDist")
-        layout.prop(operator, "ignoreLastEdge")
+        #layout.prop(operator, "ignoreLastEdge")
+
+
 
 
 ### export
@@ -199,7 +232,7 @@ class ExportINI(bpy.types.Operator, ExportHelper):
     bl_label = "Export AC INI"
     bl_options = {'PRESET', 'UNDO'}
     filename_ext = ".ini"
-    filter_glob = StringProperty(
+    filter_glob : StringProperty(
         default="*.ini",
         options={'HIDDEN'},
     )
@@ -232,7 +265,7 @@ class ExportCSV(bpy.types.Operator, ExportHelper):
     bl_label = "Export AC CSV"
     bl_options = {'PRESET', 'UNDO'}
     filename_ext = ".csv"
-    filter_glob = StringProperty(
+    filter_glob : StringProperty(
         default="*.csv;*.ini",
         options={'HIDDEN'},
     )
@@ -283,10 +316,14 @@ class ExportAI(bpy.types.Operator, ExportHelper):
     bl_label = "Export AC AI line"
     bl_options = {'PRESET', 'UNDO'}
     filename_ext = ".ai"
-    filter_glob = StringProperty(
+    filter_glob : StringProperty(
         default="*.ai",
         options={'HIDDEN'},
     )
+    files : CollectionProperty(
+            name="File Path",
+            type=bpy.types.OperatorFileListElement,
+            )
     scaling : FloatProperty(
         name="Scale",
         min=0.01, max=100.0,
@@ -294,13 +331,18 @@ class ExportAI(bpy.types.Operator, ExportHelper):
         description='',
         )
     shiftCount : IntProperty(
-        name="ShiftCount",
+        name="shiftCount",
         min=-999999, max=999999,
         description='not a good idea for ai-line, ai-line will probably be broken after this',
         default=0,
         )
+    reverse : BoolProperty(
+        name="reverse (applied to mesh!)",
+        description = "save in reverse order",
+        default=0,
+        )
     lineIDX : EnumProperty(
-        name='AI line IDX',
+        name='ailine IDX',
         description='ID in ai line, none for AI-line itself',
         items=[('-1',  "none",  "none"),
                 ('0',  "0",  "0"),
@@ -324,17 +366,32 @@ class ExportAI(bpy.types.Operator, ExportHelper):
         default='-1'
         )
 
-    def execute(self, context):
-        return export_ai.save(context, self.properties.filepath, self.shiftCount, self.lineIDX, self.scaling)
-                    #def save(context, filepath, scaling, shiftCount, lineIDX):
-
     def draw(self, context):
         layout = self.layout
         sfile = context.space_data
         operator = sfile.active_operator
         layout.prop(operator, "scaling")
-        layout.prop(operator, "shiftCount")
+        layout.prop(operator, "reverse")
         layout.prop(operator, "lineIDX")
+
+    def execute(self, context):
+        # return export_ai.save(context, self.properties.filepath, self.shiftCount, self.lineIDX, self.reverse)
+        if self.files:
+            ret = {'CANCELLED'}
+            dirname = os.path.dirname(self.filepath)
+            for file in self.files:
+                lpath = os.path.join(dirname, file.name).lower()
+                if not "left" in lpath and not "right" in lpath:
+                    return export_ai.save(context, lpath, self.shiftCount, self.lineIDX, self.scaling, self.reverse)
+            return ret
+        else:
+            return export_ai.save(context, self.properties.filepath, self.shiftCount, self.lineIDX, self.scaling, self.reverse)
+            #return export_ai.save(context, self.properties.filepath, self.scaling, self.importExtraData)
+            # return export_fbx.load(self, context, filepath=self.filepath, **keywords)
+            # return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData)
+
+
+
 
 
 def menu_func_import(self, context):
