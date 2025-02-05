@@ -25,7 +25,7 @@ def save(context, filepath, shiftCount, lineIDX, scaling, reverse):
     bm = 0
     bmL = 0
     bmR = 0
-    if len(selected_obj)>=3:
+    if len(selected_obj)>3:
         filepart = os.path.basename(filepath).lower()
         for ob2 in selected_obj:
             if    'left' in ob2.name.lower() and ob2.name.lower().startswith(filepart):
@@ -44,6 +44,16 @@ def save(context, filepath, shiftCount, lineIDX, scaling, reverse):
             len(bm.vertices)!=len(bmR.vertices) ):
             print("Length of ideal line/borders dont match!")
             return {'CANCELED'}
+    elif len(selected_obj)==3:
+        for ob2 in selected_obj:
+            if    'left' in ob2.name.lower():
+                bmL = ob2.data
+            elif 'right' in ob2.name.lower():
+                bmR = ob2.data
+            elif 'ideal' in ob2.name.lower():
+                bm = bmesh.new()
+                ob = context.active_object
+                bm = bpy.context.object.data
     elif len(selected_obj)==1:
         bm = bmesh.new()
         ob = context.active_object
