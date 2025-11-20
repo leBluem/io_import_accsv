@@ -1,10 +1,10 @@
 bl_info = {
-    "name": "Import-Export AC CSV/INI/AI files",
+    "name": "Import-Export AC CSV/INI/AI/KN5 files",
     "author": "leBluem",
-    "version": (2,0,0),
+    "version": (2,5,0),
     "blender": (2,80,0),
     "location": "File > Import-Export",
-    "description": "Import-Export AssettoCorsa CSV/AI or cameras.ini files",
+    "description": "Import-Export AssettoCorsa KN5/AI/INI/CSV files",
     "category": "Import-Export",
     "doc_url": "https://github.com/leBluem/io_import_accsv",
 }
@@ -22,6 +22,7 @@ for item in path:
         flag = True
 if flag is False:
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'io_import_accsv'))
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'io_import_accsv','kn5'))
 
 # ----------------------------------------------
 # Import modules
@@ -31,16 +32,22 @@ if "bpy" in locals():
     imp.reload(import_ini)
     imp.reload(import_csv)
     imp.reload(import_ai)
+    imp.reload(import_kn5)
+
     imp.reload(export_ini)
     imp.reload(export_csv)
     imp.reload(export_ai)
+    imp.reload(export_kn5)
 else:
     import import_ini
     import import_csv
     import import_ai
+    import import_kn5
+
     import export_ini
     import export_csv
     import export_ai
+    import export_kn5
 
 import bpy
 from bpy.props import (
@@ -94,7 +101,7 @@ class ImportINI(bpy.types.Operator, ImportHelper):
                 path = os.path.join(dirname, file.name)
                 # print(path)
                 # return import_csv.load(context, path, self.scaling, self.doDoubleCheck, self.createFaces, self.ignoreLastEdge)
-                return import_ini.load(context, path, self.scaling, self.asMesh)
+                ret = import_ini.load(context, path, self.scaling, self.asMesh)
                 #if import_ai.load(context, path, self.scaling, self.importExtraData, False, 0, False) == {'FINISHED'}:
             return ret
         else:
@@ -151,7 +158,7 @@ class ImportCSV(bpy.types.Operator, ImportHelper):
             for file in self.files:
                 path = os.path.join(dirname, file.name)
                 # print(path)
-                return import_csv.load(context, path, self.scaling, self.doDoubleCheck, self.createFaces, self.ignoreLastEdge)
+                ret = import_csv.load(context, path, self.scaling, self.doDoubleCheck, self.createFaces, self.ignoreLastEdge)
                 #if import_ai.load(context, path, self.scaling, self.importExtraData, False, 0, False) == {'FINISHED'}:
             return ret
         else:
@@ -173,6 +180,7 @@ class ImportAI(bpy.types.Operator, ImportHelper):
     bl_idname = "import_ai.read"
     bl_label = "Import AI line"
     bl_options = {'PRESET', 'UNDO'}
+
     filename_ext = ".ai"
     filter_glob : StringProperty(
         default="*.ai",
@@ -195,16 +203,16 @@ class ImportAI(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         if self.files:
+            print("Importing multiple files...")
             ret = {'CANCELLED'}
             dirname = os.path.dirname(self.filepath)
             for file in self.files:
                 path = os.path.join(dirname, file.name)
-                # print(path)
-                return import_ai.load(context, path, self.scaling, self.importExtraData, False, 0, False)
+                print("Importing AI line " + path)
+                ret = import_ai.load(context, path, self.scaling, self.importExtraData, False, 0, False)
             return ret
         else:
-            #return import_fbx.load(self, context, filepath=self.filepath, **keywords)
-            #print("B " + self.properties.filepath)
+            print("Importing AI line " + self.properties.filepath)
             return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData, False, 0, False)
 
         # return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData)
@@ -216,11 +224,69 @@ class ImportAI(bpy.types.Operator, ImportHelper):
 
         layout.prop(operator, "scaling")
         layout.prop(operator, "importExtraData")
+
         ### not finished atm
         #layout.prop(operator, "createCameras")
         #layout.prop(operator, "maxDist")
         #layout.prop(operator, "ignoreLastEdge")
 
+
+class ImportKN5(bpy.types.Operator, ImportHelper):
+    """Load a KN5 File"""
+    bl_idname = "import_kn5.read"
+    bl_label = "Import KN5"
+    bl_options = {'PRESET', 'UNDO'}
+    filename_ext = ".kn5"
+    filter_glob = StringProperty(
+        default="*.kn5",
+        options={'HIDDEN'},
+    )
+    files : CollectionProperty(
+        name="File Path",
+        type=bpy.types.OperatorFileListElement,
+    )
+    scaling : FloatProperty(
+        name="Scale",
+        min=0.01, max=100.0,
+        default=1.0,
+        )
+
+    def execute(self, context):
+        if self.files:
+            ret = {'CANCELLED'}
+            dirname = os.path.dirname(self.filepath)
+            ret = {'FINISHED'}
+            for file in self.files:
+                path = os.path.join(dirname, file.name)
+
+                # print("importing " + path)
+                ret = import_kn5.load(context, path, self.scaling)
+
+                #if self.createCollectionPerFile:
+                _, tail = os.path.split(path)
+                collection_name = tail.lower()  ## .replace('.kn5', '.fbx')
+                #bpy.ops.import_scene.obj(filepath=f)
+                myCol = bpy.data.collections.new(collection_name)
+                bpy.context.scene.collection.children.link(myCol)
+                for ob in bpy.context.selected_objects:
+                    orig = ob.users_collection
+                    myCol.objects.link(ob)
+                    orig[0].objects.unlink(ob)
+
+            return ret
+
+        else:
+
+            #print("importing " + self.properties.filepath)
+            return import_kn5.load(context, self.properties.filepath, self.scaling)
+            #return import_fbx.load(self, context, filepath=self.filepath, **keywords)
+            # return import_kn5.load(context, self.properties.filepath, self.scaling)
+
+    def draw(self, context):
+        layout = self.layout
+        sfile = context.space_data
+        operator = sfile.active_operator
+        layout.prop(operator, "scaling")
 
 
 
@@ -365,6 +431,23 @@ class ExportAI(bpy.types.Operator, ExportHelper):
                 ('17', "17", "17")],
         default='-1'
         )
+    fixedBorders: BoolProperty(
+        name="Fixed Border:",
+        description = "ignore borders",
+        default=False
+        )
+    fixedLeft : FloatProperty(
+        name="Fixed Left border",
+        min=0.2, max=20.0,
+        description='ignore border',
+        default=2.0
+        )
+    fixedRight : FloatProperty(
+        name="Fixed Right border",
+        min=0.2, max=20.0,
+        description='ignore border',
+        default=2.0
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -373,45 +456,133 @@ class ExportAI(bpy.types.Operator, ExportHelper):
         layout.prop(operator, "scaling")
         layout.prop(operator, "reverse")
         layout.prop(operator, "lineIDX")
+        layout.prop(operator, "fixedBorders")
+        layout.prop(operator, "fixedLeft")
+        layout.prop(operator, "fixedRight")
 
     def execute(self, context):
-        # return export_ai.save(context, self.properties.filepath, self.shiftCount, self.lineIDX, self.reverse)
+        # dirname = os.path.dirname(self.filepath)
+        # ### thx @Tino from discord!
+        # for obj in bpy.context.selected_objects:
+        #     if obj.type == 'MESH':
+        #         try:
+        #             # Désélectionner tout
+        #             bpy.ops.object.select_all(action='DESELECT')
+
+        #             # Sélectionner et activer l'objet courant
+        #             obj.select_set(True)
+        #             bpy.context.view_layer.objects.active = obj
+
+        #             # Nettoyer le nom si ".ai" déjà présent
+        #             obj_name = obj.name
+        #             if obj_name.lower().endswith(".ai"):
+        #                 obj_name = obj_name[:-3]
+
+        #             # Chemin du fichier
+        #             export_path = os.path.join(dirname, f"{obj_name}.ai")
+
+        #             # Exporter
+        #             export_ai.save(
+        #                 context,
+        #                 export_path,
+        #                 self.shiftCount,
+        #                 self.lineIDX,
+        #                 self.scaling,
+        #                 self.reverse,
+        #                 self.fixedBorders,
+        #                 self.fixedLeft,
+        #                 self.fixedRight
+        #             )
+        #             print(f"✅ Exporté : {obj_name}")
+        #             return {'FINISHED'}
+
+        #         except Exception as e:
+        #             print(f"❌ Erreur avec {obj.name} : {e}")
+        #             return {'CANCELLED'}
+        #         ##print("✅ Exportation terminée (objets sélectionnés uniquement)")
+
+        # # return export_ai.save(context, self.properties.filepath, self.shiftCount, self.lineIDX, self.reverse)
         if self.files:
             ret = {'CANCELLED'}
+
+            # # deselect all
+            # bpy.ops.object.select_all(action='DESELECT')
+
+            # # select on object
+            # obj.select_set(True)
+            # bpy.context.view_layer.objects.active = obj
+
             dirname = os.path.dirname(self.filepath)
             for file in self.files:
                 lpath = os.path.join(dirname, file.name).lower()
                 if not "left" in lpath and not "right" in lpath:
-                    return export_ai.save(context, lpath, self.shiftCount, self.lineIDX, self.scaling, self.reverse)
+                    return export_ai.save(context,        lpath,
+                                          self.shiftCount, self.lineIDX, self.scaling, self.reverse,
+                                          self.fixedBorders, self.fixedLeft, self.fixedRight)
             return ret
         else:
-            return export_ai.save(context, self.properties.filepath, self.shiftCount, self.lineIDX, self.scaling, self.reverse)
+            return export_ai.save(context, self.properties.filepath,
+                                  self.shiftCount, self.lineIDX, self.scaling, self.reverse,
+                                  self.fixedBorders, self.fixedLeft, self.fixedRight)
             #return export_ai.save(context, self.properties.filepath, self.scaling, self.importExtraData)
             # return export_fbx.load(self, context, filepath=self.filepath, **keywords)
             # return import_ai.load(context, self.properties.filepath, self.scaling, self.importExtraData)
 
+### export KN5
+class ExportKN5(bpy.types.Operator, ExportHelper):
+    """Export as KN5"""
+    bl_idname = "export_kn5.write"
+    bl_label = "Export AC KN5 track"
+    bl_options = {'PRESET', 'UNDO'}
+    filename_ext = ".kn5"
+    filter_glob : StringProperty(
+        default="*.kn5;*.ini",
+        options={'HIDDEN'},
+    )
+    scaling : FloatProperty(
+        name="Scale",
+        min=0.01, max=100.0,
+        default=1.0,
+        description='',
+        )
+
+    def draw(self, context):
+        layout = self.layout
+        sfile = context.space_data
+        operator = sfile.active_operator
+        layout.prop(operator, "scaling")
+
+    def execute(self, context):
+        return export_kn5.save(context, self.properties.filepath, self.scaling)
+
+###
 
 
 
 
 def menu_func_import(self, context):
-    self.layout.operator(ImportINI.bl_idname, text="AC camera_x.ini (.ini)")
-    self.layout.operator(ImportCSV.bl_idname, text="AC side_x.csv (.csv)")
-    self.layout.operator(ImportAI.bl_idname, text="AC fast_lane.ai (.ai)")
+    self.layout.operator(ImportINI.bl_idname, text="AC camera_x.INI (.ini)")
+    self.layout.operator(ImportCSV.bl_idname, text="AC side_x.CSV (.csv)")
+    self.layout.operator(ImportAI.bl_idname , text="AC fast_lane.AI (.ai)")
+    self.layout.operator(ImportKN5.bl_idname, text="AC .KN5 using KN52fbx.exe (.kn5)")
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportINI.bl_idname, text="AC camera_x.ini (.ini)")
-    self.layout.operator(ExportCSV.bl_idname, text="AC side_x.csv (.csv)")
-    self.layout.operator(ExportAI.bl_idname, text="AC fast_lane.ai (.ai)")
+    self.layout.operator(ExportINI.bl_idname, text="AC camera_x.INI (.ini)")
+    self.layout.operator(ExportCSV.bl_idname, text="AC side_x.CSV (.csv)")
+    self.layout.operator(ExportAI.bl_idname, text="AC fast_lane.AI (.ai)")
+    self.layout.operator(ExportKN5.bl_idname, text="AC track .KN5 (experimental) (.kn5)")
 
 
 classes = (
     ImportINI,
     ImportCSV,
     ImportAI,
+    ImportKN5,
+
     ExportINI,
     ExportCSV,
     ExportAI,
+    ExportKN5
 )
 
 

@@ -63,6 +63,7 @@ def save(context, filepath, scaling, shiftCount, reverse, conv2Curve2mesh, skipP
                 for v in bm.vertices:
                     distTotal += distance(v.co, lastco)
                     lastco = v.co
+
                 print('spline length: ' + str(distTotal) )
                 lastco = lastOne
                 dist = 0.0

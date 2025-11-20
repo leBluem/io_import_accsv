@@ -61,6 +61,14 @@
  - v2.4.0
  --- fixed exporting to the wrong ID for AI line export other than default
  --- added mass import for all modules, added mass export for exporting AI lines
+ - v2.4.1
+ --- fixed potential issue when exporting to one file only with different name than selected export file
+ - v2.5
+ --- fixed mass ai line export - thx @Tino from discord!
+ --- fixed mass import
+ --- added importing KN5(s), its using https://github.com/leBluem/ac_tools_cmd and AD FBXConverter
+ --- added experimental export to track KN5, needs a previously saved ...fbx.ini (Persistence file), based on https://site.hagn.io/assettocorsa/blender-kn5-exporter
+
 
 If you have problems, remove those folders and install again:
 c:\Blender\3.1\scripts\addons\io_import_accsv\

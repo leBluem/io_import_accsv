@@ -27,7 +27,9 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
     coords=[]
     edges=[]
     edgeidx=0
-    maxrange = min(len(data_ideal), len(data_detail))
+    min=0
+    max=0
+    maxrange = len(data_ideal)  # , len(data_detail))
     for i in range(maxrange):
         x, z, y, dist, id = data_ideal[i]
         if idx!=-1:
@@ -54,10 +56,30 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
             else:
                 if len(data_detail)>0:
                     z = data_detail[i][idx] * 100
+        if x<min:
+            min = x
+        if y<min:
+            min = y
+        if z<min:
+            min = z
+        if x>max:
+            max = x
+        if y>max:
+            max = y
+        if z>max:
+            max = z
+        if x>10000:
+            x = 10000
+        if y>10000:
+            y = 10000
+        if z>10000:
+            z = 10000
         coords.append( Vector( (float(x), -float(y), float(z)) ) )
-        if i>=0 and i<maxrange-1:
+        if i>=0 and i<maxrange-1 and edgeidx>-1:
             edges.append([edgeidx,edgeidx+1])
         edgeidx+=1
+
+    print('  min/max: '+ str(min) + " / "  + str(max))
 
     # edges.pop()
     if not ignoreLastEdge:
@@ -81,6 +103,7 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
     meda = mesh.data
     for i in range(1,len(meda.vertices)):
         meda.vertices[i].select = False
+
     #bpy.ops.object.mode_set(mode='EDIT')
     # else: # add to existing mesh
     #     mesh = bmesh.from_edit_mesh(bpy.data.objects[meshname].data)
@@ -136,8 +159,8 @@ def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ig
         # read ideal-line data
         i=4*5
         c=0
-        while i < filesize and c<detailCount:       # 4 floats, one integer
-        #for i in range(detailCount):       # 4 floats, one integer
+        #for i in range(detailCount):       # 4 floats, 1 integer
+        while i+20 < filesize and c<detailCount:       # 4 floats, 1 integer
             data_ideal.append(struct.unpack("4f i", buffer.read(4 * 5)))
             i+=4*5
             c+=1
@@ -157,11 +180,13 @@ def load(context, filepath, scaling, importExtraData, createCameras, maxDist, ig
             data_detail.append(struct.unpack("18f", buffer.read(4 * 18)))
             i+=4*18
             c+=1
+
         print('len data_detail: ' + str(len(data_detail)))
         if detailCount>len(data_detail):
             print('data_ideal/data_detail do NOT match ! ')
             detailCount=len(data_detail)
 
+        print('len unknown: ' + str(c-detailCount))
 
         if len(data_ideal)>1:
             xx, zx, yx, _, _ = data_ideal[len(data_ideal)-1]

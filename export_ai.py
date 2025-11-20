@@ -16,35 +16,45 @@ def distance(point1, point2) -> float:
     return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
 
 
-def save(context, filepath, shiftCount, lineIDX, scaling, reverse):
+def save(context, filepath, shiftCount, lineIDX, scaling, reverse, fixedborders, fixedLeft, fixedRight):
     selected_obj = bpy.context.selected_objects.copy()
     # if len(selected_obj)!=1 and len(selected_obj)!=3:
     #     print('Select only one object!')
-    #     return {'CANCELED'}
+    #     return {'CANCELLED'}
 
     bm = 0
     bmL = 0
     bmR = 0
-    if len(selected_obj)>3:
+    if len(selected_obj) > 3:
+
+        ### any amount of meshes selected
         filepart = os.path.basename(filepath).lower()
         for ob2 in selected_obj:
             if    'left' in ob2.name.lower() and ob2.name.lower().startswith(filepart):
                 bmL = ob2.data
+                print("Found left border: " + ob2.name)
             elif 'right' in ob2.name.lower() and ob2.name.lower().startswith(filepart):
                 bmR = ob2.data
+                print("Found left border: " + ob2.name)
             elif 'ideal' in ob2.name.lower() and ob2.name.lower().startswith(filepart):
                 bm = bmesh.new()
-                ob = context.active_object
                 bm = bpy.context.object.data
+                # ob = context.active_object
 
-        if (bmL==0 or bmR==0 or bm==0):
-            print("Could not find 'ideal/left/right', select both borders and idealline last, so its selected!")
-            return {'CANCELED'}
-        if (len(bm.vertices)!=len(bmL.vertices) or
-            len(bm.vertices)!=len(bmR.vertices) ):
-            print("Length of ideal line/borders dont match!")
-            return {'CANCELED'}
+        # if (bmL==0 or bmR==0 or bm==0):
+        if (bm==0):
+            # print("Could not find 'ideal/left/right', select both borders and idealline last, so its selected!")
+            print("Could not find 'ideal', select both borders and idealline last, so its selected!")
+            return {'CANCELLED'}
+        # if (len(bm.vertices)!=len(bmL.vertices) or
+        #     len(bm.vertices)!=len(bmR.vertices) ):
+        # if (len(bm.vertices)!=len(bmL.vertices) or
+        #     len(bm.vertices)!=len(bmR.vertices) ):
+        #     print("Length of ideal line/borders dont match!")
+        #     return {'CANCELLED'}
+
     elif len(selected_obj)==3:
+
         for ob2 in selected_obj:
             if    'left' in ob2.name.lower():
                 bmL = ob2.data
@@ -52,18 +62,18 @@ def save(context, filepath, shiftCount, lineIDX, scaling, reverse):
                 bmR = ob2.data
             elif 'ideal' in ob2.name.lower():
                 bm = bmesh.new()
-                ob = context.active_object
                 bm = bpy.context.object.data
+                # ob = context.active_object
     elif len(selected_obj)==1:
         bm = bmesh.new()
-        ob = context.active_object
         bm = bpy.context.object.data
+        # ob = context.active_object
     else:
-        return {'CANCELED'}
+        return {'CANCELLED'}
 
     if len(bm.vertices) < 2:
         print('Not enough vertices!')
-        return {'CANCELED'}
+        return {'CANCELLED'}
 
     # temporary arrays
     data_ideal = []
@@ -93,6 +103,7 @@ def save(context, filepath, shiftCount, lineIDX, scaling, reverse):
                     data_detail.append(struct.unpack("18f", buffer.read(4 * 18)))
                     filesize -= 4*18
                 # now comes more data, no info available for that
+                print("rest: " + str(filesize))
                 data_rest = buffer.read(filesize)
         else:
             print('... overwriting file ...')
@@ -156,11 +167,15 @@ def save(context, filepath, shiftCount, lineIDX, scaling, reverse):
             if runIndex>=detailCount:
                 runIndex=0
 
-            distL=0.2
-            distR=0.2
-            if (bmL!=0 and bmR!=0):
-                distL = distance(bm.vertices[runIndex].co,bmL.vertices[runIndex].co)
-                distR = distance(bm.vertices[runIndex].co,bmR.vertices[runIndex].co)
+            distL=2.0
+            distR=2.0
+            if fixedborders:
+                distL=fixedLeft
+                distR=fixedRight
+            else:
+                if (bmL!=0 and bmR!=0):
+                    distL = distance(bm.vertices[runIndex].co,bmL.vertices[runIndex].co)
+                    distR = distance(bm.vertices[runIndex].co,bmR.vertices[runIndex].co)
 
             # 18 floats * detailCount
             for i in range(detailCount):
@@ -235,9 +250,13 @@ def save(context, filepath, shiftCount, lineIDX, scaling, reverse):
 
                 distL = data_detail[runIndex][6]
                 distR = data_detail[runIndex][7]
-                if (bmL!=0 and bmR!=0):
-                    distL = distance(bm.vertices[runIndex].co,bmL.vertices[runIndex].co)
-                    distR = distance(bm.vertices[runIndex].co,bmR.vertices[runIndex].co)
+                if fixedborders:
+                    distL=fixedLeft
+                    distR=fixedRight
+                else:
+                    if (bmL!=0 and bmR!=0):
+                        distL = distance(bm.vertices[runIndex].co,bmL.vertices[runIndex].co)
+                        distR = distance(bm.vertices[runIndex].co,bmR.vertices[runIndex].co)
 
                 data = struct.pack("18f",
                           data_detail[runIndex][0] , data_detail[runIndex][1] , data_detail[runIndex][2],
