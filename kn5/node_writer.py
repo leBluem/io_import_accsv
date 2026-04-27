@@ -1,3 +1,5 @@
+limit=2**16
+
 # Copyright (C) 2014  Thomas Hagnhofer
 # edited by leBluem
 
@@ -14,10 +16,11 @@ import bmesh
 from mathutils import Matrix
 import math
 
+import traceback
+
 halfrotmat = Matrix.Rotation(math.pi,4,'X')
 
 KN5_HEADER_BYTES = b"sc6969"
-
 NODES = "nodes"
 
 NODE_CLASS = {
@@ -110,7 +113,7 @@ class NodeWriter(KN5Writer):
                 print('  ' + str(c) + ' of ' + str(iObjs) + ' - ' + str(len(obj.data.vertices)) + ' verts: ' + obj.name)
                 #self._write_mesh_node(obj)
                 self._write_object(obj)
-        print('')
+        # print('')
 
     def _write_object(self, obj):
         if obj.type == "MESH":
@@ -228,8 +231,8 @@ class NodeWriter(KN5Writer):
         self.write_bool(node_properties.castShadows)
         self.write_bool(node_properties.visible)
         self.write_bool(node_properties.transparent)
-        if len(mesh.vertices) > 2**16:
-            raise Exception(f"Only {2**16} vertices per mesh allowed. ('{obj.name}')")
+        if len(mesh.vertices) > limit:
+            raise Exception(f"Only {limit} vertices per mesh allowed. ('{obj.name}')")
         self.write_uint(len(mesh.vertices))
 
         c=0
@@ -266,11 +269,15 @@ class NodeWriter(KN5Writer):
         self.write_uint(len(mesh.indices))
         for i in mesh.indices:
             self.write_ushort(i)
+            ### above limit? - well this breaks KN5 format
+            ##self.write_uint(i)
+
         if mesh.material_id is None:
             self.warnings.append(f"No material to mesh '{obj.name}' assigned")
             self.write_uint(0)
         else:
             self.write_uint(mesh.material_id)
+
         self.write_uint(node_properties.layer) #layer
         self.write_float(node_properties.lodIn) #lodIn
         self.write_float(node_properties.lodOut) #lodOut
@@ -318,20 +325,25 @@ class NodeWriter(KN5Writer):
             mesh_copy.calc_tangents()
         except:
             # gone wrong, we have to triangulate
-            print('  triangulating : ' + obj.name)
-            bm = bmesh.new()
-            bm.from_mesh(mesh_copy)
-            bmesh.ops.triangulate(bm, faces=bm.faces[:], quad_method='BEAUTY', ngon_method='BEAUTY')
-            # bmesh.ops.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
-            bm.to_mesh(mesh_copy)
+            print('  triangulating : ' + obj.name + '\n' + traceback.format_exc())
 
-            # Finish up, write the bmesh back to the mesh
-            bm.to_mesh(obj.data)
+            try:
+                bm = bmesh.new()
+                bm.from_mesh(mesh_copy)
+                bmesh.ops.triangulate(bm, faces=bm.faces[:], quad_method='BEAUTY', ngon_method='BEAUTY')
+                # bmesh.ops.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
+                bm.to_mesh(mesh_copy)
 
-            bm.free()
-            # so now again:
-            mesh_copy.calc_loop_triangles()
-            mesh_copy.calc_tangents()
+                # Finish up, write the bmesh back to the mesh
+                bm.to_mesh(obj.data)
+
+                bm.free()
+                # so now again:
+                mesh_copy.calc_loop_triangles()
+                mesh_copy.calc_tangents()
+            except:
+                # gone wrong, we have to triangulate
+                print('  triangulating2 : ' + obj.name + '\n' + traceback.format_exc())
 
         try:
             uv_layer = mesh_copy.uv_layers.active
@@ -355,13 +367,12 @@ class NodeWriter(KN5Writer):
                     face_indices = []
                     for loop_index in triangle.loops:
                         loop = mesh_copy.loops[loop_index]
-                        #local_position = matrix @ mesh_copy.vertices[loop.vertex_index].co   ### * self.scaling
+                        #local_position = matrix @ mesh_copy.vertices[loop.vertex_index].co * self.scaling
                         local_position = matrix @ mesh_copy.vertices[loop.vertex_index].co
                         ####@ halfrotmat   ### * self.scaling
                         converted_position = convert_vector3(local_position)
-
-                        ### converted_normal = convert_vector3_normal(loop.normal)
-                        converted_normal = loop.normal
+                        converted_normal = convert_vector3_normal(loop.normal)
+                        # converted_normal = loop.normal
                         uv = (0, 0)
                         if uv_layer:
                             uv = uv_layer.data[loop_index].uv
@@ -378,18 +389,19 @@ class NodeWriter(KN5Writer):
                     indices.extend((face_indices[1], face_indices[2], face_indices[0]))
                     if len(face_indices) == 4:
                         indices.extend((face_indices[2], face_indices[3], face_indices[0]))
-                #vertices = [v for v, index in sorted(vertices.items(), key=lambda k: k[1])]
-                vertices = [v for v, index in vertices.items()]
+                vertices = [v for v, index in sorted(vertices.items(), key=lambda k: k[1])]
+                #vertices = [v for v, index in vertices.items()]
                 # print( str(len(vertices)) + ' ' + str(len(indices)) )
                 material_id = self.material_writer.material_positions[material_name]
                 meshes.append(Mesh(material_id, vertices, indices))
         except:
+            # print("triangulation failed")
+            print('  triangulating0 : ' + obj.name + '\n' + traceback.format_exc())
             obj.to_mesh_clear()
         return meshes
 
     def _split_meshes_for_vertex_limit(self, divided_meshes):
         new_meshes = []
-        limit = 2**16
         for mesh in divided_meshes:
             if len(mesh.vertices) > limit:
                 start_index = 0
@@ -406,8 +418,8 @@ class NodeWriter(KN5Writer):
                             new_indices.append(vertex_index_mapping[face_index])
                         if len(vertex_index_mapping) >= limit-3:
                             break
-                    # verts = [mesh.vertices[v] for v, index in sorted(vertex_index_mapping.items(), key=lambda k: k[1])]
-                    verts = [mesh.vertices[v] for v, index in vertex_index_mapping.items()]
+                    verts = [mesh.vertices[v] for v, index in sorted(vertex_index_mapping.items(), key=lambda k: k[1])]
+                    #verts = [mesh.vertices[v] for v, index in vertex_index_mapping.items()]
                     new_meshes.append(Mesh(mesh.material_id, verts, new_indices))
             else:
                 new_meshes.append(mesh)
