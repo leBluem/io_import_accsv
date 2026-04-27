@@ -68,6 +68,12 @@
  --- fixed mass import
  --- added importing KN5(s), its using https://github.com/leBluem/ac_tools_cmd and AD FBXConverter
  --- added experimental export to track KN5, needs a previously saved ...fbx.ini (Persistence file), based on https://site.hagn.io/assettocorsa/blender-kn5-exporter
+ - v2.6
+ --- added 'import' for .fbx.ini files
+ -----fixes transparent materials based on ALPHABLEND/TEST value
+ -----will load diffuse image listed in fbx.ini if different from blender file
+ --- same for KN5 import, this feature will be run too after import is done
+
 
 
 If you have problems, remove those folders and install again:

@@ -6,12 +6,195 @@ Run this script from "File->Import" menu and then load the desired KN5 file(s).
 """
 
 
-import bpy, bmesh, os, struct, csv, math, configparser, codecs
+import bpy, bmesh, os, io, struct, csv, math, configparser, collections, codecs
 from mathutils import Vector
 from bpy_extras.object_utils import object_data_add
 
 import sys
 import subprocess
+
+
+def get_diffuse_image_from_material(material_name):
+    mat = bpy.data.materials.get(material_name)
+    # Prüfen, ob Material existiert und Nodes verwendet
+    if mat and mat.use_nodes:
+        principled = next((n for n in mat.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
+        if principled:
+            base_color_input = principled.inputs['Base Color']
+            if base_color_input.is_linked:
+                connected_node = base_color_input.links[0].from_node
+                if connected_node.type == 'TEX_IMAGE' and connected_node.image:
+                    return connected_node
+    return None
+
+def get_alpha_image_from_material(material_name):
+    """
+    Sucht nach einem Bild mit Alpha-Kanal innerhalb eines Materials.
+    Gibt das Image-Objekt zurück, falls gefunden, sonst None.
+    """
+    # Material über Namen aus den Blender-Daten abrufen
+    mat = bpy.data.materials.get(material_name)
+    # Prüfen, ob Material existiert und Nodes verwendet
+    if mat and mat.use_nodes:
+        for node in mat.node_tree.nodes:
+            # Nur Image Texture Nodes mit zugewiesenem Bild prüfen
+            if node.type == 'TEX_IMAGE' and node.image:
+                img = node.image
+                # Validierung: Hat das Bild 4 Kanäle (RGBA) und ist Alpha nicht deaktiviert?
+                if img.channels == 4 and img.alpha_mode != 'NONE':
+                    return img
+    return None
+
+def RemoveAlphaChannel(context, inimatname):
+    selected_objs = context.selected_objects.copy()
+    for o in selected_objs:
+        for s in o.material_slots:
+            if s.material.name == inimatname:
+                if s.material and s.material.use_nodes:
+                    for n in s.material.node_tree.nodes:
+                        s.material.blend_method = 'OPAQUE'
+                        if 'Alpha' in n.inputs:
+                            input_alpha = n.inputs['Alpha']
+                            if input_alpha.is_linked:
+                                print('material ' + inimatname + ': removing alpha' )
+                                links = s.material.node_tree.links
+                                for link in links:
+                                    if link.to_socket == input_alpha:
+                                        links.remove(link)
+                            input_alpha.default_value = 1.0
+
+def SetAlphaChannel(context, inimatname):
+    selected_objs = context.selected_objects.copy()
+    for o in selected_objs:
+        for s in o.material_slots:
+            if s.material.name == inimatname:
+                if s.material and s.material.use_nodes:
+                    for n in s.material.node_tree.nodes:
+                        if 'Alpha' in n.inputs:
+                            links = s.material.node_tree.links
+                            nodes = s.material.node_tree.nodes
+                            input_alpha = n.inputs['Alpha']
+                            # bpy.data.images["Skin_00.dds"].alpha_mode = 'STRAIGHT'
+                            if input_alpha.is_linked:
+                                # diffuse = get_diffuse_image_from_material(s.material.name)
+                                # n.image.filepath = diffuse
+                                if n.type == 'TEX_IMAGE' and n.image:
+                                    n.image.alpha_mode = 'STRAIGHT'
+                                pass
+                            else:
+                                principled = next((n for n in nodes if n.type == 'BSDF_PRINCIPLED'), None)
+                                if principled:
+                                    base_color_input = principled.inputs['Base Color']
+                                    if base_color_input.is_linked:
+                                        connected_node = base_color_input.links[0].from_node
+                                        if connected_node.type == 'TEX_IMAGE' and connected_node.image:
+                                            # found Base Color image
+                                            # bname=str(os.path.basename(connected_node.image.filepath)).lower()
+                                            print('setting alpha to diffuse')
+                                            diffuse = get_diffuse_image_from_material(s.material.name)
+                                            connected_node.image.alpha_mode = 'STRAIGHT'
+                                            # diffuse.alpha_mode = 'STRAIGHT'
+                                            shader_node = next((m for m in nodes if m.type == 'BSDF_PRINCIPLED'), None)
+                                            links.new(diffuse.outputs['Alpha'], shader_node.inputs['Alpha'])
+                            # else:
+                            # if not input_alpha.is_linked:
+                                # s.material.node_tree.links.new(shader.inputs['Alpha'], n.outputs['Alpha'])
+                                # links.new(img_node.outputs['Alpha'], shader_node.inputs['Alpha'])
+                                # input_alpha = n.inputs['Alpha']
+
+
+
+
+def ScanFBXINI(context, THEFILE):
+    if not os.path.isfile(THEFILE):
+        print('.FBX.ini not found: ' + THEFILE)
+    else:
+        matsBlender=[]
+        matsB=[]
+        c=0
+        selected_objs = bpy.context.selected_objects.copy()
+        # selected_objs = bpy.context.o
+
+        for o in selected_objs:
+            for s in o.material_slots:
+                if not s.material.name in matsBlender:
+                    if s.material and s.material.use_nodes:
+                        matsBlender.append(s.material.name)
+                        matsB.append(s.material)
+
+        # for s in bpy.data.materials:
+        #     if not s.name in matsBlender:
+        #         if s.use_nodes:
+        #             matsBlender.append(s.name)
+        #             matsB.append(s)
+
+        print('reading ' + THEFILE)
+        fbxini = configparser.ConfigParser({}, collections.OrderedDict, empty_lines_in_values=False, strict=False, allow_no_value=True, inline_comment_prefixes=(";","#","/","_","|"), comment_prefixes=(";","#","/","_","|"))
+        fbxini.optionxform=str # keep upper/lower case
+        fbxini.read(THEFILE)
+        fbxmatcnt = 0
+        if fbxini.has_section('MATERIAL_LIST'):
+            fbxmatcnt = int(fbxini.get('MATERIAL_LIST','COUNT'))
+
+        print('Blender materials: ' + str(len(matsBlender)))
+        matsdone=[]
+        for i in range(len(matsBlender)):
+            BlenderMat=matsBlender[i]
+            found = False
+            for j in range(fbxmatcnt):
+                matsect = 'MATERIAL_'+str(j)
+                if fbxini.has_section(matsect):
+                    inimatname = fbxini.get(matsect,'NAME')
+                    if BlenderMat == inimatname and not inimatname in matsdone:
+                        matsdone.append(inimatname)
+                        found = True
+
+                        sBlendVal = '0'
+                        sTestVal = '0'
+                        sTex0 = ''
+                        if fbxini.has_option(matsect,'ALPHABLEND'):
+                            sBlendVal = fbxini.get(matsect,'ALPHABLEND')
+                        if fbxini.has_option(matsect,'ALPHATEST'):
+                            sTestVal = fbxini.get(matsect,'ALPHATEST')
+                        if fbxini.has_option(matsect,'RES_0_TEXTURE'):
+                            sTex0 = fbxini.get(matsect,'RES_0_TEXTURE').lower()
+
+                        if sBlendVal == '1' or sTestVal == '1':
+                            if matsB[i].blend_method != 'BLEND':
+                                print('material ' + inimatname + ': ' + matsB[i].blend_method + ' -> ' + 'BLEND')
+                                ### set Alpha channel image
+                                matsB[i].blend_method = 'BLEND'
+                            SetAlphaChannel(context, inimatname)
+                        else:
+                            if matsB[i].blend_method != 'OPAQUE':
+                                print('material ' + inimatname + ': ' + matsB[i].blend_method + ' -> ' + 'OPAQUE')
+                                ### remove Alpha channel image
+                                matsB[i].blend_method = 'OPAQUE'
+                            # if get_alpha_image_from_material(inimatname)!=None:
+                            RemoveAlphaChannel(context, inimatname)
+
+                        # check if diffuse image is still same
+                        nodes = matsB[i].node_tree.nodes
+                        principled = next((n for n in nodes if n.type == 'BSDF_PRINCIPLED'), None)
+                        if principled:
+                            base_color_input = principled.inputs['Base Color']
+                            if base_color_input.is_linked:
+                                connected_node = base_color_input.links[0].from_node
+                                if connected_node.type == 'TEX_IMAGE' and connected_node.image:
+                                    bname=str(os.path.basename(connected_node.image.filepath)).lower()
+                                    if sBlendVal == '0' and sTestVal == '0':
+                                        connected_node.image.alpha_mode = 'NONE'
+                                    bdir=os.path.dirname(connected_node.image.filepath)
+                                    if sTex0!='' and bname!=sTex0 and os.path.isfile(bdir + sTex0):
+                                        print('Setting new image: '+bdir + sTex0 )
+                                        connected_node.image.filepath = bdir + sTex0
+                                        ### no
+                                        ### SetAlphaChannel(context, inimatname)
+
+            if not found:
+                print("material '" + BlenderMat + "' not found in .ini")
+        print('Done scanning ' + str(fbxmatcnt) + ' FBXINI materials')
+
 
 def getFBX(subdirectory=''):
     if subdirectory:
@@ -53,19 +236,18 @@ def load(context, filepath, scaling):
     ##addondir = os.path.dirname(__file__
     #print(bpy.context.space_data.text.filepath)
 
-    ### standalone ###
-    # kn52fbx = os.path.dirname(bpy.context.space_data.text.filepath) + "/kn52fbx/kn52fbx.exe"
-
-    ### called from __init__ ###
-    kn52fbx = os.path.dirname(__file__) + "/kn52fbx/kn52fbx.exe"
+    if __name__ == "__main__":
+        ### standalone ###
+        kn52fbx = os.path.dirname(bpy.context.space_data.text.filepath) + "/kn52fbx/kn52fbx.exe"
+    else:
+        ### called from __init__ ###
+        kn52fbx = os.path.dirname(__file__) + "/kn52fbx/kn52fbx.exe"
 
 
     #print(kn52fbx)
     if not os.path.isfile(kn52fbx):
         print ("not found in addon folder: " + kn52fbx)
         return {"'CANCELLED"}
-
-    print("Running " + kn52fbx + " " + filepath)
 
     blend_dir = os.path.dirname(filepath)
     if blend_dir not in sys.path:
@@ -74,6 +256,8 @@ def load(context, filepath, scaling):
     ### snapshot folder
     dirs1 = getDirs(os.path.dirname(filepath))
     #print(dirs1)
+
+    print("Running " + kn52fbx + " " + filepath)
 
     startupinfo = subprocess.STARTUPINFO()
     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -103,7 +287,6 @@ def load(context, filepath, scaling):
         else:
             print("Importing " + fbx)
 
-
             # bpy.ops.object.mode_set(mode='OBJECT')
             # obj.data.vertices[0].select = True
 
@@ -121,17 +304,24 @@ def load(context, filepath, scaling):
 
 
             ### Import FBX
-            bpy.ops.import_scene.fbx( filepath=fbx, global_scale = scaling, axis_forward='X', axis_up='Z',use_custom_normals=False)
+            bpy.ops.import_scene.fbx(filepath=fbx, global_scale = scaling, axis_forward='X', axis_up='Z',use_custom_normals=False)
             ### ### Export blend file
             ### # bpy.ops.wm.save_mainfile( )
             # CenterOrigin(scaling)
-            return {'FINISHED'}
 
+            ### fix transparent materials
+            ##ScanFBXINI(bpy.context, fbx+'.ini')
+
+            return {'FINISHED'}
 
     return {"CANCELLED"}
 
 
-##### for testing inside blender script editor
-# filepath = "p:/Steam/steamapps/common/assettocorsa/content/tracks/rt_azure_coast/reverse/data/brkk.csv"
-## filepath = "p:\\Steam\\steamapps\\common\\assettocorsa\\content\\tracks\\fn_bahrain\\fn_bahrain_2008.kn5"
-## load(bpy.context, filepath, 0.01)
+if __name__ == "__main__":
+    ##### for testing inside blender script editor
+    filepath = "p:/Steam/steamapps/common/assettocorsa/content/cars/ks_mazda_mx5_cup/unp_mazda_mx5_lod_a.kn5/Mazda_MX5_lod_A.fbx"
+
+    ####load(bpy.context, filepath, 1.0)
+    ScanFBXINI(bpy.context, filepath+'.ini')
+
+    pass

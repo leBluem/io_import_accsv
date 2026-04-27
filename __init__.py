@@ -115,6 +115,43 @@ class ImportINI(bpy.types.Operator, ImportHelper):
         layout.prop(operator, "scaling")
         layout.prop(operator, "asMesh")
 
+class ImportFBXINI(bpy.types.Operator, ImportHelper):
+    """Load a camera.INI File"""
+    bl_idname = "import_fbxini.read"
+    bl_label = "Import .FBX.INI"
+    bl_options = {'PRESET', 'UNDO'}
+    filename_ext = ".fbx.ini"
+    filter_glob : StringProperty(
+        default="*.fbx.ini",
+        options={'HIDDEN'},
+    )
+    files : CollectionProperty(
+            name="File Path",
+            type=bpy.types.OperatorFileListElement,
+            )
+
+    def execute(self, context):
+        if self.files:
+            ret = {'CANCELLED'}
+            dirname = os.path.dirname(self.filepath)
+            ret = {'FINISHED'}
+            for file in self.files:
+                path = os.path.join(dirname, file.name)
+                import_kn5.ScanFBXINI(context, path)
+            return ret
+        else:
+            #print("importing " + self.properties.filepath)
+            # return import_kn5.load(context, self.properties.filepath, self.scaling)
+            return import_kn5.ScanFBXINI(context, self.properties.filepath)
+            #return import_fbx.load(self, context, filepath=self.filepath, **keywords)
+            # return import_kn5.load(context, self.properties.filepath, self.scaling)
+
+    def draw(self, context):
+        layout = self.layout
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+
 class ImportCSV(bpy.types.Operator, ImportHelper):
     """Load a CSV File"""
     bl_idname = "import_csv.read"
@@ -262,7 +299,6 @@ class ImportKN5(bpy.types.Operator, ImportHelper):
                 # print("importing " + path)
                 ret = import_kn5.load(context, path, self.scaling)
 
-                #if self.createCollectionPerFile:
                 _, tail = os.path.split(path)
                 collection_name = tail.lower()  ## .replace('.kn5', '.fbx')
                 #bpy.ops.import_scene.obj(filepath=f)
@@ -272,6 +308,8 @@ class ImportKN5(bpy.types.Operator, ImportHelper):
                     orig = ob.users_collection
                     myCol.objects.link(ob)
                     orig[0].objects.unlink(ob)
+
+                # scan
 
             return ret
 
@@ -561,15 +599,16 @@ class ExportKN5(bpy.types.Operator, ExportHelper):
 
 
 def menu_func_import(self, context):
-    self.layout.operator(ImportINI.bl_idname, text="AC camera_x.INI (.ini)")
-    self.layout.operator(ImportCSV.bl_idname, text="AC side_x.CSV (.csv)")
-    self.layout.operator(ImportAI.bl_idname , text="AC fast_lane.AI (.ai)")
-    self.layout.operator(ImportKN5.bl_idname, text="AC .KN5 using KN52fbx.exe (.kn5)")
+    self.layout.operator(ImportINI.bl_idname    , text="AC camera_x.INI (.ini)")
+    self.layout.operator(ImportCSV.bl_idname    , text="AC side_x.CSV (.csv)")
+    self.layout.operator(ImportAI.bl_idname     , text="AC fast_lane.AI (.ai)")
+    self.layout.operator(ImportFBXINI.bl_idname , text="AC .fbx.ini Settings (.fbx.ini)")
+    self.layout.operator(ImportKN5.bl_idname    , text="AC .KN5 using KN52fbx.exe (.kn5)")
 
 def menu_func_export(self, context):
     self.layout.operator(ExportINI.bl_idname, text="AC camera_x.INI (.ini)")
     self.layout.operator(ExportCSV.bl_idname, text="AC side_x.CSV (.csv)")
-    self.layout.operator(ExportAI.bl_idname, text="AC fast_lane.AI (.ai)")
+    self.layout.operator(ExportAI.bl_idname , text="AC fast_lane.AI (.ai)")
     self.layout.operator(ExportKN5.bl_idname, text="AC track .KN5 (experimental) (.kn5)")
 
 
@@ -577,6 +616,7 @@ classes = (
     ImportINI,
     ImportCSV,
     ImportAI,
+    ImportFBXINI,
     ImportKN5,
 
     ExportINI,

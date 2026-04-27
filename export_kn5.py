@@ -5,12 +5,14 @@ import os, time
 import bpy
 from bpy.props import BoolProperty, StringProperty
 from bpy_extras.io_utils import ExportHelper
+import traceback
 
 from kn5.exporter_utils import read_settings
 from kn5.kn5_writer import KN5Writer
 from kn5.texture_writer import TextureWriter
 from kn5.material_writer import MaterialWriter
 from kn5.node_writer import NodeWriter
+
 
 KN5_HEADER_BYTES = b"sc6969"
 
@@ -53,16 +55,17 @@ def save(context, filepath, scaling):
             try:
                 t1=time.time()
 
-                kn5_writer = KN5FileWriter(output_file, context, basedir, basename, settings, warnings, scaling)
+                kn5_writer = KN5FileWriter(output_file, context, basedir, 'FBX: '+basename, settings, warnings, scaling)
                 kn5_writer.write()
 
                 print(str( round(time.time()-t1,1)) + ' seconds')
                 print(os.linesep.join(warnings) + "\n... export successfull!")
             finally:
+                print('  export KN5 error : ' + traceback.format_exc())
                 if not output_file is None:
                     output_file.close()
     except:
-        print(os.linesep.join(warnings) + "\n... export failed!")
+        print(os.linesep.join(warnings) + '\n  export KN5 error : ' + traceback.format_exc())
         result = {"CANCELLED"}
 
         try:
