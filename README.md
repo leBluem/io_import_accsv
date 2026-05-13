@@ -73,7 +73,8 @@
  -----fixes transparent materials based on ALPHABLEND/TEST value
  -----will load diffuse image listed in fbx.ini if different from blender file
  --- same for KN5 import, this feature will be run too after import is done
-
+ - v2.7
+ --- fixed the fbx.ini reader not handling relative paths correctly
 
 
 If you have problems, remove those folders and install again:

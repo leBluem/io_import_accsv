@@ -96,6 +96,7 @@ def SetAlphaChannel(context, inimatname):
                                             # diffuse.alpha_mode = 'STRAIGHT'
                                             shader_node = next((m for m in nodes if m.type == 'BSDF_PRINCIPLED'), None)
                                             links.new(diffuse.outputs['Alpha'], shader_node.inputs['Alpha'])
+
                             # else:
                             # if not input_alpha.is_linked:
                                 # s.material.node_tree.links.new(shader.inputs['Alpha'], n.outputs['Alpha'])
@@ -181,13 +182,17 @@ def ScanFBXINI(context, THEFILE):
                             if base_color_input.is_linked:
                                 connected_node = base_color_input.links[0].from_node
                                 if connected_node.type == 'TEX_IMAGE' and connected_node.image:
-                                    bname=str(os.path.basename(connected_node.image.filepath)).lower()
                                     if sBlendVal == '0' and sTestVal == '0':
                                         connected_node.image.alpha_mode = 'NONE'
-                                    bdir=os.path.dirname(connected_node.image.filepath)
-                                    if sTex0!='' and bname!=sTex0 and os.path.isfile(bdir + sTex0):
-                                        print('Setting new image: '+bdir + sTex0 )
-                                        connected_node.image.filepath = bdir + sTex0
+                                    fullname = bpy.path.abspath(connected_node.image.filepath, library=connected_node.image.library)
+                                    bdir=os.path.dirname(fullname)+'/'
+                                    bname=str(os.path.basename(fullname)).lower()
+                                    print('mat: ' + inimatname + ' img: ' + fullname)
+                                    print('ini: ' + sTex0 + ' - extracted: ' + bname)
+                                    print('new img: ' + bdir + sTex0)
+                                    if sTex0!='' and bname!=sTex0 and os.path.isfile(bdir+sTex0):
+                                        print('Setting new image: '+bdir+sTex0 )
+                                        connected_node.image.filepath = bdir+sTex0
                                         ### no
                                         ### SetAlphaChannel(context, inimatname)
 
@@ -317,11 +322,11 @@ def load(context, filepath, scaling):
     return {"CANCELLED"}
 
 
-if __name__ == "__main__":
-    ##### for testing inside blender script editor
-    filepath = "p:/Steam/steamapps/common/assettocorsa/content/cars/ks_mazda_mx5_cup/unp_mazda_mx5_lod_a.kn5/Mazda_MX5_lod_A.fbx"
-
-    ####load(bpy.context, filepath, 1.0)
-    ScanFBXINI(bpy.context, filepath+'.ini')
-
-    pass
+### to debug in blender script editor
+# if __name__ == "__main__":
+#     ##### for testing inside blender script editor
+#     # filepath = "p:/Steam/steamapps/common/assettocorsa/content/cars/ks_mazda_mx5_cup/unp_mazda_mx5_lod_a.kn5/Mazda_MX5_lod_A.fbx"
+#     filepath = r"p:\acStuff\nords_18\18.fbx"
+#     ####load(bpy.context, filepath, 1.0)
+#     ScanFBXINI(bpy.context, filepath+'.ini')
+#     pass
