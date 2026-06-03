@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Import-Export AC CSV/INI/AI/KN5 files",
     "author": "leBluem",
-    "version": (2,5,0),
+    "version": (2,8,0),
     "blender": (2,80,0),
     "location": "File > Import-Export",
     "description": "Import-Export AssettoCorsa KN5/AI/INI/CSV files",
