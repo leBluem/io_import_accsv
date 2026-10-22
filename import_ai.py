@@ -68,12 +68,12 @@ def CreateMeshFromDataPoints(meshname, idx, data_ideal, data_detail, scaling, ig
             max = y
         if z>max:
             max = z
-        if x>10000:
-            x = 10000
-        if y>10000:
-            y = 10000
-        if z>10000:
-            z = 10000
+        if x>10000000:
+            x = 10000000
+        if y>10000000:
+            y = 10000000
+        if z>10000000:
+            z = 10000000
         coords.append( Vector( (float(x), -float(y), float(z)) ) )
         if i>=0 and i<maxrange-1 and edgeidx>-1:
             edges.append([edgeidx,edgeidx+1])

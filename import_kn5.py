@@ -28,10 +28,6 @@ def get_diffuse_image_from_material(material_name):
     return None
 
 def get_alpha_image_from_material(material_name):
-    """
-    Sucht nach einem Bild mit Alpha-Kanal innerhalb eines Materials.
-    Gibt das Image-Objekt zurück, falls gefunden, sonst None.
-    """
     # Material über Namen aus den Blender-Daten abrufen
     mat = bpy.data.materials.get(material_name)
     # Prüfen, ob Material existiert und Nodes verwendet
@@ -309,7 +305,7 @@ def load(context, filepath, scaling):
 
 
             ### Import FBX
-            bpy.ops.import_scene.fbx(filepath=fbx, global_scale = scaling, axis_forward='X', axis_up='Z',use_custom_normals=False)
+            bpy.ops.import_scene.fbx(filepath=fbx, global_scale = scaling, axis_forward='X', axis_up='Z',use_custom_normals=True)
             ### ### Export blend file
             ### # bpy.ops.wm.save_mainfile( )
             # CenterOrigin(scaling)

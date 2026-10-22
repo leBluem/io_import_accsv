@@ -75,7 +75,11 @@
  --- same for KN5 import, this feature will be run too after import is done
  - v2.7
  --- fixed the fbx.ini reader not handling relative paths correctly
-
+ - v2.8
+ --- updated KN52fbx.exe to handle strange material settings
+ - v2.9
+ --- fixed KN5 importer not using normals from fbx
+ --- fixed AI line import on large AI lines going beyond xy -+10km
 
 If you have problems, remove those folders and install again:
 c:\Blender\3.1\scripts\addons\io_import_accsv\
